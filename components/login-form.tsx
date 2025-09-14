@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import {  useState } from "react"
 import { useRouter } from "next/navigation";  
 import { signIn } from "next-auth/react"
+import LoginImg from '@/public/login-page.jpg';
 
 export function LoginForm({
     className,
@@ -28,7 +29,7 @@ export function LoginForm({
        if(result?.error){
         console.log(result.error);
        }else{
-        router.push('/');
+        router.push('/dashboard/allposts');
        }
 
     }
@@ -39,9 +40,9 @@ export function LoginForm({
                     <form onSubmit={hanldeSubmit} className="p-6 md:p-8">
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col items-center text-center">
-                                <h1 className="text-2xl font-bold">Welcome back</h1>
+                                <h1 className="text-2xl font-bold">Admin Login</h1>
                                 <p className="text-muted-foreground text-balance">
-                                    Login to your CapReel Pro Account
+                                    Login to Admin Panel
                                 </p>
                             </div>
                             <div className="grid gap-3">
@@ -58,19 +59,19 @@ export function LoginForm({
                             <div className="grid gap-3">
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Password</Label>
-                                    <a
+                                    {/* <a
                                         href="#"
                                         className="ml-auto text-sm underline-offset-2 hover:underline"
                                     >
                                         Forgot your password?
-                                    </a>
+                                    </a> */}
                                 </div>
                                 <Input id="password" value={password} onChange={(e)=>setpassword(e.target.value)} type="password" required />
                             </div>
                             <Button type="submit" className="w-full">
                                 Login
                             </Button>
-                            <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                            {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                                 <span className="bg-card text-muted-foreground relative z-10 px-2">
                                     Or continue with
                                 </span>
@@ -103,28 +104,28 @@ export function LoginForm({
                                     </svg>
                                     <span className="sr-only">Login with Meta</span>
                                 </Button>
-                            </div>
-                            <div className="text-center text-sm">
+                            </div> */}
+                            {/* <div className="text-center text-sm">
                                 Don&apos;t have an account?{" "}
                                 <a href="/signup" className="underline underline-offset-4">
                                     Sign up
                                 </a>
-                            </div>
+                            </div> */}
                         </div>
                     </form>
                     <div className="bg-muted relative hidden md:block">
                         <img
-                            src="/Gemini_Generated_Image_5c28rn5c28rn5c28.png"
-                            alt="Image"
+                            src={LoginImg.src}
+                            alt="Login Background Image"
                             className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
                         />
                     </div>
                 </CardContent>
             </Card>
-            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+            {/* <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
                 By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
                 and <a href="#">Privacy Policy</a>.
-            </div>
+            </div> */}
         </div>
     )
 }

@@ -1,14 +1,14 @@
 'use client';
-import VideoFeed from './components/VedioShow';
+import Products from '@/app/products/page';
 import Navbar from './components/NavbarComponent';
-
+import Footer from './components/Footer';
 
 export default function Home() {
-
   return (
-    <section className='flex items-center justify-center flex-col bg-black min-h-screen'>
-      <Navbar/>
-      <VideoFeed />
-    </section>
+    <div>
+      <Navbar />
+      <Products />
+      <Footer />
+    </div>
   );
 }

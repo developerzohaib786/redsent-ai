@@ -15,8 +15,8 @@ export default function Navbar() {
   const [isOpen, setisOpen] = useState(false);
   return (
     <>
-      <section className="px-4 py-4 lg:py-8 lg:p-16 fixed w-full top-0 z-50">
-        <div className="container">
+      <section className="py-4 lg:py-8 fixed w-full top-0 bg-black backdrop-blur z-50">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="bg-neutral-900/70 backdrop-blur border border-white/15 rounded-[27px] md:rounded-full">
             <div className="flex items-center justify-between p-2 px-4 md:pr-2">
 
@@ -43,7 +43,7 @@ export default function Navbar() {
                   <line x1={12} y1={22.08} x2={12} y2={12} />
                   <line x1={12} y1={22.08} x2={12} y2={12} />
                 </svg>
-                <span className="text-lime-400 font-bold text-xl">LeaderBoard Sphere</span>
+                <span className="text-lime-400 font-bold text-xl">Reddit Reviews</span>
               </div>
 
               {/* Middle: Nav Links */}
@@ -78,10 +78,10 @@ export default function Navbar() {
 
                 {/* Desktop buttons */}
                 <Button variant="secondary" className="hidden md:inline-flex items-center">
-                  Log In
+                  Search
                 </Button>
                 <Button variant="primary" className="hidden md:inline-flex items-center">
-                  Sign Up
+                  See Products
                 </Button>
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function Navbar() {
           </div>
         </div>
       </section>
-      <div className="pb-[86px] md:pb-[98px] lg-px-[130px]"></div>
+      <div className="h-24 md:h-28 lg:h-32"></div>
     </>
 
   )

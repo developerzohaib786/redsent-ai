@@ -2,26 +2,48 @@ import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server";
 
 export default withAuth(
-    function middleware() {
+    function middleware(req) {
+        const { pathname } = req.nextUrl;
+        
+        // If user is trying to access dashboard routes without being authenticated
+        if (pathname.startsWith('/dashboard') && !req.nextauth.token) {
+            return NextResponse.redirect(new URL('/login', req.url));
+        }
+        
         return NextResponse.next();
     },
     {
         callbacks: {
             authorized({ req, token }) {
                 const { pathname } = req.nextUrl;
+                
+                // Allow access to auth APIs and public pages
                 if(
                     pathname.startsWith('/api/auth') ||
-                    pathname==='/login' ||
-                    pathname==='/signup'
+                    pathname === '/login' ||
+                    pathname === '/signup' ||
+                    pathname === '/' ||
+                    pathname === '/products' ||
+                    pathname.startsWith('/products/') ||
+                    pathname.startsWith('/public')
                 ){
                     return true;
                 }
-                     if(token) return true // If there is a token, the user is authenticated
+                
+                // Restrict dashboard routes to authenticated users only
+                if (pathname.startsWith('/dashboard')) {
+                    return !!token; // Only allow if token exists
+                }
+                
+                // For other protected routes, require authentication
+                if (token) return true;
+                
+                // Redirect to login for unauthenticated users
+                return false;
             }
         }
     }
 );
-
 
 export const config = {
     matcher: [
