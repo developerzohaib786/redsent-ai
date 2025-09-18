@@ -25,13 +25,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-y-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black overflow-y-hidden h-screen`}
       >
         <Provider>
           <Navbar />
-          <main className="">
+          <main className="overflow-y-hidden h-full">
             {children}
           </main>
         </Provider>

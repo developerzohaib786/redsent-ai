@@ -6,8 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const navLinks = [
   { label: 'Home', href: '/' },
-  { label: 'Upload Project', href: '/uploadfile' },
-  { label: 'Chat Commumity', href: '#' },
+  { label: 'Admin Panel', href: '/login' },
+  { label: 'Contact Us', href: '#' },
   { label: 'FAQs', href: 'faqs' },
 ]
 

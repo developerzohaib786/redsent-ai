@@ -1,6 +1,6 @@
 "use client"
 
-import { LogOut, Home, Plus } from "lucide-react"
+import { LogOut, Home, Plus, BarChart3 } from "lucide-react"
 import { signOut } from "next-auth/react"
 
 import {
@@ -44,6 +44,11 @@ const items: MenuItem[] = [
     title: "Add Post",
     url: "/dashboard/addpost",
     icon: Plus,
+  },
+  {
+    title: "Reviews Generator",
+    url: '/dashboard/reddit-reviews-generator',
+    icon: BarChart3,
   },
   {
     title: "LogOut",

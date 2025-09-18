@@ -34,19 +34,19 @@ export function LoginForm({
 
     }
     return (
-        <div className={cn("flex flex-col gap-6", className)} {...props}>
-            <Card className="overflow-hidden p-0">
+        <div className={cn("flex flex-col gap-6 bg-black min-h-screen p-4", className)} {...props}>
+            <Card className="overflow-hidden p-0 bg-neutral-900 border-neutral-700">
                 <CardContent className="grid p-0 md:grid-cols-2">
-                    <form onSubmit={hanldeSubmit} className="p-6 md:p-8">
+                    <form onSubmit={hanldeSubmit} className="p-6 md:p-8 bg-black">
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col items-center text-center">
-                                <h1 className="text-2xl font-bold">Admin Login</h1>
-                                <p className="text-muted-foreground text-balance">
+                                <h1 className="text-2xl font-bold text-white">Admin Login</h1>
+                                <p className="text-gray-300 text-balance">
                                     Login to Admin Panel
                                 </p>
                             </div>
                             <div className="grid gap-3">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email" className="text-white">Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -54,11 +54,12 @@ export function LoginForm({
                                     value={email}
                                     onChange={(e)=>setemail(e.target.value)}
                                     required
+                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-lime-400 focus:border-lime-400"
                                 />
                             </div>
                             <div className="grid gap-3">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password" className="text-white">Password</Label>
                                     {/* <a
                                         href="#"
                                         className="ml-auto text-sm underline-offset-2 hover:underline"
@@ -66,9 +67,16 @@ export function LoginForm({
                                         Forgot your password?
                                     </a> */}
                                 </div>
-                                <Input id="password" value={password} onChange={(e)=>setpassword(e.target.value)} type="password" required />
+                                <Input 
+                                    id="password" 
+                                    value={password} 
+                                    onChange={(e)=>setpassword(e.target.value)} 
+                                    type="password" 
+                                    required 
+                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-lime-400 focus:border-lime-400"
+                                />
                             </div>
-                            <Button type="submit" className="w-full">
+                            <Button type="submit" className="w-full bg-lime-400 text-black hover:bg-lime-500 font-medium">
                                 Login
                             </Button>
                             {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -113,11 +121,11 @@ export function LoginForm({
                             </div> */}
                         </div>
                     </form>
-                    <div className="bg-muted relative hidden md:block">
+                    <div className="bg-neutral-800 relative hidden md:block">
                         <img
                             src={LoginImg.src}
                             alt="Login Background Image"
-                            className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+                            className="absolute inset-0 h-full w-full object-cover brightness-[0.3] grayscale"
                         />
                     </div>
                 </CardContent>
