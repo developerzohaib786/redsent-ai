@@ -1,9 +1,11 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
 export interface IRedditReview {
-    review: string;
-    visitLink: string;
+    comment: string;
     tag: 'positive' | 'negative' | 'neutral';
+    link: string;
+    author: string;
+    subreddit: string;
 }
 
 export interface IProduct {
@@ -27,13 +29,15 @@ export interface IProduct {
 }
 
 const redditReviewSchema = new Schema({
-    review: { type: String, required: true },
-    visitLink: { type: String, required: true },
-    tag: { 
-        type: String, 
-        enum: ['positive', 'negative', 'neutral'], 
-        default: 'neutral' 
-    }
+    comment: { type: String, required: true },
+    tag: {
+        type: String,
+        enum: ['positive', 'negative', 'neutral'],
+        default: 'neutral'
+    },
+    link: { type: String, required: true },
+    author: { type: String, required: true },
+    subreddit: { type: String, required: true }
 }, { _id: false });
 
 const productSchema = new Schema({
@@ -111,13 +115,7 @@ const productSchema = new Schema({
     },
     redditReviews: { 
         type: [redditReviewSchema], 
-        default: [],
-        validate: {
-            validator: function(arr: IRedditReview[]) {
-                return arr.length <= 10;
-            },
-            message: 'Maximum 10 Reddit reviews allowed'
-        }
+        default: []
     },
     productScore: { 
         type: Number, 

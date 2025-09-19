@@ -6,9 +6,11 @@ import axios from 'axios';
 import FileUpload from "@/app/components/FileUpload";
 
 interface RedditReview {
-    review: string;
-    visitLink: string;
+    comment: string;
     tag: 'positive' | 'negative' | 'neutral';
+    link: string;
+    author: string;
+    subreddit: string;
 }
 
 interface ProductFormData {
@@ -53,13 +55,12 @@ const ProductPostForm: React.FC = () => {
         affiliateLinkText: '',
         pros: [''],
         cons: [''],
-        redditReviews: Array(10).fill(null).map(() => ({
-            review: '',
-            visitLink: '',
-            tag: 'neutral' as const
-        })),
+        redditReviews: [],
         productScore: 50
     });
+
+    // For the textarea input
+    const [redditReviewsInput, setRedditReviewsInput] = useState('');
 
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,14 +141,7 @@ const ProductPostForm: React.FC = () => {
         }));
     };
 
-    const updateRedditReview = (index: number, field: keyof RedditReview, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            redditReviews: prev.redditReviews.map((review, i) =>
-                i === index ? { ...review, [field]: value } : review
-            )
-        }));
-    };
+    // No longer needed: updateRedditReview
 
     const validateData = (): boolean => {
         const newErrors: ValidationErrors = {};
@@ -208,18 +202,33 @@ const ProductPostForm: React.FC = () => {
         }
 
         // Reddit Reviews validation
-        const validReviews = formData.redditReviews.filter(review =>
-            review.review.trim().length > 0 || review.visitLink.trim().length > 0
-        );
-
-        for (const review of validReviews) {
-            if (review.visitLink.trim() && review.visitLink.trim() !== '') {
-                try {
-                    new URL(review.visitLink);
-                } catch {
-                    newErrors.redditReviews = 'All Reddit review links must be valid URLs';
-                    break;
+        if (redditReviewsInput.trim()) {
+            try {
+                const parsed = JSON.parse(redditReviewsInput);
+                if (!Array.isArray(parsed)) {
+                    newErrors.redditReviews = 'Reddit reviews must be a JSON array.';
+                } else if (parsed.length > 50) {
+                    newErrors.redditReviews = 'Maximum 50 Reddit reviews allowed.';
+                } else {
+                    for (const review of parsed) {
+                        if (!review.comment || !review.tag || !review.link) {
+                            newErrors.redditReviews = 'Each review must have comment, tag, and link.';
+                            break;
+                        }
+                        if (!['positive', 'negative', 'neutral'].includes(review.tag)) {
+                            newErrors.redditReviews = 'Tag must be positive, negative, or neutral.';
+                            break;
+                        }
+                        try {
+                            new URL(review.link);
+                        } catch {
+                            newErrors.redditReviews = 'All review links must be valid URLs.';
+                            break;
+                        }
+                    }
                 }
+            } catch {
+                newErrors.redditReviews = 'Reddit reviews must be valid JSON.';
             }
         }
 
@@ -241,14 +250,16 @@ const ProductPostForm: React.FC = () => {
 
         try {
             // Filter out empty values
+            let redditReviews: RedditReview[] = [];
+            if (redditReviewsInput.trim()) {
+                redditReviews = JSON.parse(redditReviewsInput);
+            }
             const cleanedData = {
                 ...formData,
                 productPhotos: formData.productPhotos.filter(photo => photo.trim() !== ''),
                 pros: formData.pros.filter(pro => pro.trim() !== ''),
                 cons: formData.cons.filter(con => con.trim() !== ''),
-                redditReviews: formData.redditReviews.filter(review =>
-                    review.review.trim() !== '' || review.visitLink.trim() !== ''
-                )
+                redditReviews
             };
 
             const response = await axios.post('/api/auth/post', cleanedData, {
@@ -269,13 +280,10 @@ const ProductPostForm: React.FC = () => {
                     affiliateLinkText: '',
                     pros: [''],
                     cons: [''],
-                    redditReviews: Array(10).fill(null).map(() => ({
-                        review: '',
-                        visitLink: '',
-                        tag: 'neutral' as const
-                    })),
+                    redditReviews: [],
                     productScore: 50
                 });
+                setRedditReviewsInput('');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -516,42 +524,15 @@ const ProductPostForm: React.FC = () => {
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
                         <MessageSquare className="inline w-5 h-5 mr-2" />
-                        Reddit Reviews (Max 10)
+                        Reddit Reviews (JSON array, max 10)
                     </label>
-                    <div className="space-y-4">
-                        {formData.redditReviews.map((review, index) => (
-                            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 className="font-medium text-gray-800 mb-3">Reddit Review {index + 1}</h4>
-                                <div className="space-y-3">
-                                    <textarea
-                                        value={review.review}
-                                        onChange={(e) => updateRedditReview(index, 'review', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                                        placeholder="Enter Reddit review content"
-                                        rows={3}
-                                    />
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <input
-                                            type="url"
-                                            value={review.visitLink}
-                                            onChange={(e) => updateRedditReview(index, 'visitLink', e.target.value)}
-                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                                            placeholder="Reddit post URL"
-                                        />
-                                        <select
-                                            value={review.tag}
-                                            onChange={(e) => updateRedditReview(index, 'tag', e.target.value)}
-                                            className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${getTagColor(review.tag)}`}
-                                        >
-                                            <option value="neutral">Neutral</option>
-                                            <option value="positive">Positive</option>
-                                            <option value="negative">Negative</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <textarea
+                        value={redditReviewsInput}
+                        onChange={e => setRedditReviewsInput(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                        placeholder={`Paste JSON array of reviews here.\nExample:\n[\n  {\n    \"comment\": \"Great product!\",\n    \"tag\": \"positive\",\n    \"link\": \"https://reddit.com/...\",\n    \"author\": \"user123\",\n    \"subreddit\": \"subredditname\"\n  }\n]`}
+                        rows={8}
+                    />
                     <ErrorMessage error={errors.redditReviews} />
                 </div>
 

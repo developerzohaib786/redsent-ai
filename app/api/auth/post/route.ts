@@ -69,15 +69,20 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Validate Reddit reviews URLs
-        const validReviews = body.redditReviews?.filter(review =>
-            review.review.trim().length > 0 || review.visitLink.trim().length > 0
-        ) || [];
+        // Validate Reddit reviews (all required fields and URL)
+        const validReviews = (body.redditReviews || []).filter(review =>
+            review &&
+            typeof review.comment === 'string' && review.comment.trim().length > 0 &&
+            typeof review.tag === 'string' && ['positive', 'negative', 'neutral'].includes(review.tag) &&
+            typeof review.link === 'string' && review.link.trim().length > 0 &&
+            typeof review.author === 'string' && review.author.trim().length > 0 &&
+            typeof review.subreddit === 'string' && review.subreddit.trim().length > 0
+        );
 
         for (const review of validReviews) {
-            if (review.visitLink.trim() && review.visitLink.trim() !== '') {
+            if (review.link && review.link.trim() !== '') {
                 try {
-                    new URL(review.visitLink);
+                    new URL(review.link);
                 } catch {
                     return NextResponse.json({
                         error: 'Invalid Reddit review URL format'
