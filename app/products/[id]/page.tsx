@@ -8,18 +8,20 @@ import { Star, ExternalLink, Heart, ArrowLeft, Share2, ShoppingCart, ChevronDown
 import { IProduct } from '@/models/post';
 
 interface IRedditReview {
-    review: string;
-    visitLink: string;
+    comment: string;
     tag: 'positive' | 'negative' | 'neutral';
+    link: string;
+    author: string;
+    subreddit: string;
 }
 
 const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
     const [showFullText, setShowFullText] = useState(false);
-    
+
     const maxLength = 150; // Character limit for preview
-    const shouldShowMore = review.review.length > maxLength;
-    const displayText = showFullText ? review.review : review.review.substring(0, maxLength);
-    
+    const shouldShowMore = review.comment.length > maxLength;
+    const displayText = showFullText ? review.comment : review.comment.substring(0, maxLength);
+
     const getTagColors = (tag: string) => {
         switch (tag) {
             case 'positive':
@@ -45,23 +47,27 @@ const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
                 };
         }
     };
-    
+
     const colors = getTagColors(review.tag);
-    
+
     return (
         <div className={`relative border-2 ${colors.borderColor} ${colors.bgColor} rounded-lg p-6 pt-8 transition-all duration-300 hover:shadow-lg overflow-visible`}>
             {/* Tag positioned at top-left corner */}
             <div className={`absolute -top-2 left-4 ${colors.tagBg} ${colors.tagText} px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide z-10 shadow-lg`}>
                 {review.tag}
             </div>
-            
+
             {/* Review content */}
             <div className="mt-1">
                 <p className="text-gray-300 leading-relaxed text-sm break-words whitespace-pre-wrap">
                     &ldquo;{displayText}{!showFullText && shouldShowMore && '...'}&rdquo;
                 </p>
+                <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-400">
+                    <span>by <span className="font-semibold text-gray-300">{review.author}</span></span>
+                    <span>in <span className="font-semibold text-gray-300">r/{review.subreddit}</span></span>
+                </div>
             </div>
-            
+
             {/* Show more button centered at bottom */}
             {shouldShowMore && (
                 <div className="flex justify-center mt-4">
@@ -83,12 +89,12 @@ const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
                     </button>
                 </div>
             )}
-            
+
             {/* Reddit link */}
-            {review.visitLink && (
+            {review.link && (
                 <div className="flex justify-end mt-3">
                     <a
-                        href={review.visitLink}
+                        href={review.link}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs text-gray-400 hover:text-lime-400 transition-colors"

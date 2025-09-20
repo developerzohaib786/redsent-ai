@@ -66,13 +66,13 @@ export async function POST(
         if (session?.user?.id) {
             // Handle authenticated user
             isAuthenticated = true;
-            const userId = new mongoose.Types.ObjectId(session.user.id);
+            const userId = String(session.user.id);
             hasLiked = product.likedBy.includes(userId);
 
             if (hasLiked) {
                 // Unlike the product
                 product.likedBy = product.likedBy.filter(
-                    (likedUserId: mongoose.Types.ObjectId) => !likedUserId.equals(userId)
+                    (likedUserId: string) => likedUserId !== userId
                 );
                 product.likeCount = Math.max(0, product.likeCount - 1);
             } else {
@@ -161,7 +161,7 @@ export async function GET(
         if (session?.user?.id) {
             // Check authenticated user
             isAuthenticated = true;
-            const userId = new mongoose.Types.ObjectId(session.user.id);
+            const userId = String(session.user.id);
             userHasLiked = product.likedBy.includes(userId);
         } else {
             // Check anonymous user

@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
             !body.productDescription ||
             !body.productPrice ||
             !body.affiliateLink ||
-            !body.affiliateLinkText
+            !body.affiliateLinkText ||
+            !body.category
         ) {
             return NextResponse.json({
                 error: 'Missing required fields'
@@ -102,7 +103,9 @@ export async function POST(request: NextRequest) {
             pros: validPros,
             cons: validCons,
             redditReviews: validReviews,
-            productScore: body.productScore ?? 50
+            productScore: body.productScore ?? 50,
+            productRank: typeof body.productRank === 'number' ? body.productRank : undefined,
+            category: body.category
         };
 
         const newProduct = await Product.create(productData);

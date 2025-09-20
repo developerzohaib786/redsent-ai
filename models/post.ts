@@ -20,8 +20,10 @@ export interface IProduct {
     cons: string[];
     redditReviews: IRedditReview[];
     productScore: number;
+    productRank?: number;
+    category: string;
     likeCount: number;
-    likedBy: mongoose.Types.ObjectId[];
+    likedBy: string[];
     anonymousLikeCount: number;
     anonymousLikedBy: string[]; // Store browser fingerprints or session IDs
     createdAt?: Date;
@@ -40,7 +42,53 @@ const redditReviewSchema = new Schema({
     subreddit: { type: String, required: true }
 }, { _id: false });
 
+const productCategories = [
+    "Action Cameras",
+    "Air Fryers",
+    "Air Purifiers",
+    "Camping Tents",
+    "Dash Cams",
+    "Drip Coffee Makers",
+    "Drones",
+    "Electric Coffee Grinders",
+    "Electric Scooters",
+    "Fitness Trackers",
+    "Gaming Headsets",
+    "Gaming Keyboards",
+    "Gaming Mice",
+    "Home Projectors",
+    "IEMs",
+    "Mesh Wifi Systems",
+    "Outdoor Sleeping Bags",
+    "Portable Air Conditioners",
+    "Portable Bluetooth Speakers",
+    "Portable Monitors",
+    "Robot Vacuums",
+    "Sleeping Pads",
+    "Smart Doorbells",
+    "Soundbars",
+    "Trail Running Shoes",
+    "Travel Car Seats",
+    "Travel Strollers",
+    "Ultrawide Monitors",
+    "Vacuum Cleaners",
+    "Webcams",
+    "WiFi Routers",
+    "Wireless Earbuds"
+];
+
 const productSchema = new Schema({
+    productRank: {
+        type: Number,
+        min: 0,
+        max: 100,
+        default: undefined
+    },
+    category: {
+        type: String,
+        required: true,
+        enum: productCategories
+    },
     productTitle: { 
         type: String, 
         required: true, 
@@ -130,7 +178,7 @@ const productSchema = new Schema({
         min: 0
     },
     likedBy: {
-        type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+        type: [String],
         default: []
     },
     anonymousLikeCount: {

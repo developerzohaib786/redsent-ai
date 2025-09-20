@@ -24,6 +24,8 @@ interface ProductFormData {
     cons: string[];
     redditReviews: RedditReview[];
     productScore: number;
+    category: string;
+    productRank?: number;
 }
 
 interface ValidationErrors {
@@ -56,7 +58,9 @@ const ProductPostForm: React.FC = () => {
         pros: [''],
         cons: [''],
         redditReviews: [],
-        productScore: 50
+        productScore: 50,
+        category: '',
+        productRank: undefined,
     });
 
     // For the textarea input
@@ -73,6 +77,41 @@ const ProductPostForm: React.FC = () => {
             setErrors(prev => ({ ...prev, [field]: undefined }));
         }
     };
+
+    const productCategories = [
+        "Action Cameras",
+        "Air Fryers",
+        "Air Purifiers",
+        "Camping Tents",
+        "Dash Cams",
+        "Drip Coffee Makers",
+        "Drones",
+        "Electric Coffee Grinders",
+        "Electric Scooters",
+        "Fitness Trackers",
+        "Gaming Headsets",
+        "Gaming Keyboards",
+        "Gaming Mice",
+        "Home Projectors",
+        "IEMs",
+        "Mesh Wifi Systems",
+        "Outdoor Sleeping Bags",
+        "Portable Air Conditioners",
+        "Portable Bluetooth Speakers",
+        "Portable Monitors",
+        "Robot Vacuums",
+        "Sleeping Pads",
+        "Smart Doorbells",
+        "Soundbars",
+        "Trail Running Shoes",
+        "Travel Car Seats",
+        "Travel Strollers",
+        "Ultrawide Monitors",
+        "Vacuum Cleaners",
+        "Webcams",
+        "WiFi Routers",
+        "Wireless Earbuds"
+    ];
 
     const handleImageUploadSuccess = (index: number, response: UploadResponse) => {
         setFormData(prev => {
@@ -147,6 +186,9 @@ const ProductPostForm: React.FC = () => {
         const newErrors: ValidationErrors = {};
 
         // Product Title validation
+        if (!formData.category) {
+            newErrors.category = 'Category is required';
+        }
         if (!formData.productTitle.trim()) {
             newErrors.productTitle = 'Product title is required';
         } else if (formData.productTitle.length < 3) {
@@ -281,7 +323,8 @@ const ProductPostForm: React.FC = () => {
                     pros: [''],
                     cons: [''],
                     redditReviews: [],
-                    productScore: 50
+                    productScore: 50,
+                    productRank: undefined,
                 });
                 setRedditReviewsInput('');
             }
@@ -295,6 +338,26 @@ const ProductPostForm: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const calculateProductRank = () => {
+        let redditReviews: RedditReview[] = [];
+        try {
+            if (redditReviewsInput.trim()) {
+                redditReviews = JSON.parse(redditReviewsInput);
+            }
+        } catch {
+            // ignore parse error, handled by validation
+        }
+        const total = redditReviews.length;
+        const positive = redditReviews.filter(r => r.tag === 'positive').length;
+        const neutral = redditReviews.filter(r => r.tag === 'neutral').length;
+        const positivePct = total > 0 ? (positive / total) * 100 : 0;
+        const neutralPct = total > 0 ? (neutral / total) * 100 : 0;
+        // 30% productScore, 50% positive, 20% neutral
+        const rank = Math.round((formData.productScore * 0.3) + (positivePct * 0.5) + (neutralPct * 0.2));
+        setFormData(prev => ({ ...prev, productRank: rank }));
+        return rank;
     };
 
     const getTagColor = (tag: string) => {
@@ -316,10 +379,27 @@ const ProductPostForm: React.FC = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg">
             <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Create Product Post</h1>
 
             <div className="space-y-8">
+                {/* Category */}
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Category *
+                    </label>
+                    <select
+                        value={formData.category}
+                        onChange={e => handleInputChange('category', e.target.value)}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
+                    >
+                        <option value="">Select a category</option>
+                        {productCategories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                    <ErrorMessage error={errors.category} />
+                </div>
                 {/* Product Title */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -524,7 +604,7 @@ const ProductPostForm: React.FC = () => {
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
                         <MessageSquare className="inline w-5 h-5 mr-2" />
-                        Reddit Reviews (JSON array, max 10)
+                        Reddit Reviews (JSON array, max 50)
                     </label>
                     <textarea
                         value={redditReviewsInput}
@@ -559,6 +639,19 @@ const ProductPostForm: React.FC = () => {
                         </span>
                     </div>
                     <ErrorMessage error={errors.productScore} />
+                </div>
+
+                {/* Product Rank */}
+                <div className="pt-4 flex flex-col items-start">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            calculateProductRank();
+                        }}
+                        className="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-all mb-2"
+                    >
+                        Generate Product Rank{typeof formData.productRank === 'number' ? `: ${formData.productRank}%` : ''}
+                    </button>
                 </div>
 
                 {/* Submit Button */}
