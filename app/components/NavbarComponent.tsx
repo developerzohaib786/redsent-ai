@@ -3,12 +3,12 @@ import Button from "@/app/components/Button";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 
 const navLinks = [
   { label: 'Home', href: '/' },
-  { label: 'Admin Panel', href: '/login' },
-  { label: 'Contact Us', href: '#' },
-  { label: 'FAQs', href: 'faqs' },
+  { label: 'About Us', href: '/about' },
+  { label: 'FAQs', href: '/faqs' },
 ]
 
 export default function Navbar() {
@@ -77,12 +77,16 @@ export default function Navbar() {
                 </svg>
 
                 {/* Desktop buttons */}
-                <Button variant="secondary" className="hidden md:inline-flex items-center">
-                  Search
+                <Link href="/categories">
+                <Button variant="secondary" className="hidden cursor-pointer md:inline-flex items-center">
+                  Ranked Categories
                 </Button>
-                <Button variant="primary" className="hidden md:inline-flex items-center">
-                  See Products
+                </Link>
+                <Link href="/products">
+                <Button variant="primary" className="hidden cursor-pointer md:inline-flex items-center">
+                  Products
                 </Button>
+                </Link>
               </div>
             </div>
             <AnimatePresence>

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Send, Loader2, ExternalLink, BarChart3, MessageSquare } from "lucide-react";
+import { v4 as uuidv4 } from 'uuid';
 
 interface RedditComment {
   comment: string;

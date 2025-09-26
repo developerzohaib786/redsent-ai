@@ -84,6 +84,11 @@ export function AppSidebar() {
                         <item.icon />
                         <span>{item.title}</span>
                       </button>
+                    ) : item.title === "Reviews Generator" ? (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer">
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </a>
                     ) : (
                       <a href={item.url}>
                         <item.icon />

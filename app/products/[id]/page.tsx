@@ -73,7 +73,7 @@ const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
                 <div className="flex justify-center mt-4">
                     <button
                         onClick={() => setShowFullText(!showFullText)}
-                        className="flex items-center gap-1 text-lime-400 hover:text-lime-300 transition-colors text-sm font-medium"
+                        className="flex items-center gap-1 text-[#FF5F1F] hover:text-[#FF5F1F] transition-colors text-sm font-medium"
                     >
                         {showFullText ? (
                             <>
@@ -97,7 +97,7 @@ const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
                         href={review.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-lime-400 transition-colors"
+                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#FF5F1F] transition-colors"
                     >
                         <span>View on Reddit</span>
                         <ExternalLink className="w-3 h-3" />
@@ -224,6 +224,10 @@ const ProductDetailPage: React.FC = () => {
     const [isLiking, setIsLiking] = useState(false);
 
     useEffect(() => {
+  console.log('Product data is: ->->->  ', product);
+}, [product]);
+
+    useEffect(() => {
         const fetchProductData = async () => {
             if (params.id) {
                 try {
@@ -236,6 +240,7 @@ const ProductDetailPage: React.FC = () => {
                     
                     const data = await response.json();
                     setProduct(data);
+                    console.log('Product data is: ->->->  ',product)
                     
                     // Check like status for both authenticated and anonymous users
                     try {
@@ -347,7 +352,7 @@ const ProductDetailPage: React.FC = () => {
                     <p className="text-gray-400 mb-6">{error || 'The product you\'re looking for doesn\'t exist.'}</p>
                     <button 
                         onClick={() => router.push('/products')}
-                        className="bg-lime-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-lime-500 transition-colors"
+                        className="bg-[#FF5F1F] text-black px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F] transition-colors"
                     >
                         Back to Products
                     </button>
@@ -363,7 +368,7 @@ const ProductDetailPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-8">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-gray-400 hover:text-lime-400 transition-colors"
+                        className="flex items-center gap-2 text-gray-400 hover:text-[#FF5F1F] transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />
                         <span>Back</span>
@@ -383,7 +388,7 @@ const ProductDetailPage: React.FC = () => {
                         >
                             <Heart 
                                 className={`w-4 h-4 transition-colors ${
-                                    liked ? 'fill-lime-400 text-lime-400' : 'text-gray-400'
+                                    liked ? 'fill-[#FF5F1F] text-[#FF5F1F]' : 'text-gray-400'
                                 }`} 
                             />
                             <span>{liked ? 'Liked' : 'Like'}</span>
@@ -422,8 +427,8 @@ const ProductDetailPage: React.FC = () => {
                                 <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-full">
                                     <div className="flex items-center gap-2">
                                                                                 <span className='text-white'>Product Score: </span>
-                                        <Star className="w-4 h-4 fill-lime-400 text-lime-400" />
-                                        <span className="text-lime-400 font-semibold">{product.productScore}</span>
+                                        <Star className="w-4 h-4 fill-[#FF5F1F] text-[#FF5F1F]" />
+                                        <span className="text-[#FF5F1F] font-semibold">{product.productScore}</span>
                                     </div>
                                 </div>
                             </div>
@@ -437,7 +442,7 @@ const ProductDetailPage: React.FC = () => {
                                             onClick={() => setCurrentImageIndex(index)}
                                             className={`relative w-20 h-20 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border-2 transition-colors ${
                                                 currentImageIndex === index 
-                                                    ? 'border-lime-400' 
+                                                    ? 'border-[#FF5F1F]' 
                                                     : 'border-gray-700 hover:border-gray-600'
                                             }`}
                                         >
@@ -461,7 +466,7 @@ const ProductDetailPage: React.FC = () => {
                                 <h1 className="text-3xl font-bold text-white break-words">
                                     {product.productTitle}
                                 </h1>
-                                <div className="text-3xl font-bold text-lime-400 break-words">
+                                <div className="text-3xl font-bold text-[#FF5F1F] break-words">
                                     {product.productPrice}
                                 </div>
                             </div>
@@ -489,11 +494,11 @@ const ProductDetailPage: React.FC = () => {
                                     {/* <button
                                         onClick={handleLike}
                                         disabled={isLiking}
-                                        className="flex items-center gap-2 bg-gray-800 hover:bg-lime-400/20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                        className="flex items-center gap-2 bg-gray-800 hover:bg-[#FF5F1F]/20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                                     >
                                         <Heart 
                                             className={`w-5 h-5 transition-colors ${
-                                                liked ? 'fill-lime-400 text-lime-400' : 'text-gray-400'
+                                                liked ? 'fill-[#FF5F1F] text-[#FF5F1F]' : 'text-gray-400'
                                             } ${isLiking ? 'animate-pulse' : ''}`} 
                                         />
                                         <span className="text-white text-sm">
@@ -517,7 +522,7 @@ const ProductDetailPage: React.FC = () => {
                                     href={product.affiliateLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full bg-lime-400 text-black py-4 px-6 rounded-xl font-bold text-lg hover:bg-lime-500 transition-colors flex items-center justify-center gap-3 group"
+                                    className="w-full bg-[#FF5F1F] text-black py-4 px-6 rounded-xl font-bold text-lg hover:bg-[#FF5F1F] transition-colors flex items-center justify-center gap-3 group"
                                 >
                                     <ShoppingCart className="w-5 h-5" />
                                     <span>{product.affiliateLinkText || 'Buy Now'}</span>
@@ -527,6 +532,15 @@ const ProductDetailPage: React.FC = () => {
                         </div>
                     </div>
 
+ {/* Review Progress Bars */}
+                {product.redditReviews && product.redditReviews.length > 0 && (
+                    <div className="mt-12 mb-8">
+                        <div className="max-w-4xl mx-auto">
+                            <h3 className="text-xl font-semibold text-white mb-6 text-center">Review Summary</h3>
+                            <ReviewProgressBars reviews={product.redditReviews} />
+                        </div>
+                    </div>
+                )}
                     {/* Second Row: Pros and Cons */}
                     {(product.pros?.length > 0 || product.cons?.length > 0) && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -565,15 +579,7 @@ const ProductDetailPage: React.FC = () => {
                     )}
                 </div>
 
-                {/* Review Progress Bars */}
-                {product.redditReviews && product.redditReviews.length > 0 && (
-                    <div className="mt-12 mb-8">
-                        <div className="max-w-4xl mx-auto">
-                            <h3 className="text-xl font-semibold text-white mb-6 text-center">Review Summary</h3>
-                            <ReviewProgressBars reviews={product.redditReviews} />
-                        </div>
-                    </div>
-                )}
+               
 
                 {/* Reddit Reviews - Full Width Below */}
                 {product.redditReviews && product.redditReviews.length > 0 && (

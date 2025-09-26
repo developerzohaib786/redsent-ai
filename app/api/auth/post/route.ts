@@ -131,95 +131,86 @@ export async function POST(request: NextRequest) {
 // ----- Update POST API ----- >
 
 export async function PUT(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json({
-                error: 'Unauthorized action'
-            }, { status: 401 });
-        }
-
-        await connectToDatabase();
-        const body = await request.json();
-        const { id, ...updateData } = body;
-
-        if (!id) {
-            return NextResponse.json({
-                error: 'Product ID is required'
-            }, { status: 400 });
-        }
-
-        // Validate required fields
-        if (
-            !updateData.productTitle ||
-            !updateData.productDescription ||
-            !updateData.productPrice ||
-            !updateData.affiliateLink ||
-            !updateData.affiliateLinkText
-        ) {
-            return NextResponse.json({
-                error: 'Missing required fields'
-            }, { status: 400 });
-        }
-
-        // Validate pros and cons arrays
-        const validPros = updateData.pros?.filter((pro: string) => pro.trim().length > 0) || [];
-        const validCons = updateData.cons?.filter((con: string) => con.trim().length > 0) || [];
-
-        if (validPros.length === 0) {
-            return NextResponse.json({
-                error: 'At least one pro is required'
-            }, { status: 400 });
-        }
-
-        if (validCons.length === 0) {
-            return NextResponse.json({
-                error: 'At least one con is required'
-            }, { status: 400 });
-        }
-
-        // Prepare update data
-        const productUpdateData = {
-            productTitle: updateData.productTitle.trim(),
-            productDescription: updateData.productDescription.trim(),
-            productPhotos: updateData.productPhotos?.filter((photo: string) => photo.trim() !== '') || [],
-            productPrice: updateData.productPrice.trim(),
-            affiliateLink: updateData.affiliateLink.trim(),
-            affiliateLinkText: updateData.affiliateLinkText.trim(),
-            pros: validPros,
-            cons: validCons,
-            redditReviews: updateData.redditReviews || [],
-            productScore: updateData.productScore ?? 50
-        };
-
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id,
-            productUpdateData,
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedProduct) {
-            return NextResponse.json({
-                error: 'Product not found'
-            }, { status: 404 });
-        }
-
-        return NextResponse.json(updatedProduct, { status: 200 });
-
-    } catch (error) {
-        console.error('Error updating product:', error);
-
-        if (error instanceof Error && error.name === 'ValidationError') {
-            return NextResponse.json({
-                error: 'Validation failed',
-                details: error.message
-            }, { status: 400 });
-        }
-
-        return NextResponse.json({
-            error: 'Failed to update product'
-        }, { status: 500 });
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized action" }, { status: 401 });
     }
+
+    await connectToDatabase();
+    const body = await request.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
+    }
+
+    // Validate required fields
+    // if (
+    //   !updateData.productTitle ||
+    //   !updateData.productDescription ||
+    //   !updateData.productPrice ||
+    //   !updateData.affiliateLink ||
+    //   !updateData.affiliateLinkText ||
+    //   !updateData.category
+    // ) {
+    //   return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    // }
+
+    // Validate pros and cons arrays
+    const validPros = updateData.pros?.filter((pro: string) => pro.trim().length > 0) || [];
+    const validCons = updateData.cons?.filter((con: string) => con.trim().length > 0) || [];
+
+    if (validPros.length === 0) {
+      return NextResponse.json({ error: "At least one pro is required" }, { status: 400 });
+    }
+
+    if (validCons.length === 0) {
+      return NextResponse.json({ error: "At least one con is required" }, { status: 400 });
+    }
+
+    // Prepare update data with schema alignment
+    const productUpdateData = {
+      productTitle: updateData.productTitle.trim(),
+      productDescription: updateData.productDescription.trim(),
+      productPhotos: updateData.productPhotos?.filter((photo: string) => photo.trim() !== "") || [],
+      productPrice: updateData.productPrice.trim(),
+      affiliateLink: updateData.affiliateLink.trim(),
+      affiliateLinkText: updateData.affiliateLinkText.trim(),
+      pros: validPros,
+      cons: validCons,
+      redditReviews: updateData.redditReviews || [],
+      productScore: updateData.productScore ?? 50,
+      productRank: updateData.productRank ?? undefined,
+      category: updateData.category,
+      likeCount: updateData.likeCount ?? 0,
+      likedBy: updateData.likedBy || [],
+      anonymousLikeCount: updateData.anonymousLikeCount ?? 0,
+      anonymousLikedBy: updateData.anonymousLikedBy || []
+    };
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, productUpdateData, {
+      new: true,
+      runValidators: true
+    });
+
+    if (!updatedProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedProduct, { status: 200 });
+  } catch (error) {
+    console.error("Error updating product:", error);
+
+    if (error instanceof Error && error.name === "ValidationError") {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+  }
 }
 
 // ----- Delete POST API ----- >
