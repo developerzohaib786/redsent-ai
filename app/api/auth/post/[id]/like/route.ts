@@ -1,3 +1,5 @@
+// File: /app/api/auth/post/[id]/like/route.ts
+
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import Product from "@/models/post";
@@ -27,9 +29,10 @@ function generateBrowserFingerprint(request: NextRequest): string {
 // POST - Toggle like for a product (both authenticated and anonymous users)
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Await the params Promise
         const { id } = await params;
 
         // Validate ObjectId
@@ -122,9 +125,10 @@ export async function POST(
 // GET - Check if user has liked the product (both authenticated and anonymous users)
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Await the params Promise
         const { id } = await params;
 
         // Validate ObjectId

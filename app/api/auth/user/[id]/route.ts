@@ -6,13 +6,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectToDatabase();
         
-        // Get the user ID from the URL parameter
-        const userId = params.id;
+        // Await the params Promise and get the user ID from the URL parameter
+        const { id: userId } = await params;
         
         if (!userId) {
             return NextResponse.json({

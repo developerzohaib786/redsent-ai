@@ -92,11 +92,20 @@ const UpdateProductPostForm: React.FC = () => {
                         pros: currentPost.pros.length > 0 ? currentPost.pros : [''],
                         cons: currentPost.cons.length > 0 ? currentPost.cons : [''],
                         redditReviews: currentPost.redditReviews.length > 0 
-                            ? [...currentPost.redditReviews, ...Array(Math.max(0, 10 - currentPost.redditReviews.length)).fill(null).map(() => ({
-                                review: '',
-                                visitLink: '',
-                                tag: 'neutral' as const
-                            }))]
+                            ? [
+                                // Map model IRedditReview to local RedditReview shape
+                                ...currentPost.redditReviews.map(r => ({
+                                    review: r.comment,
+                                    visitLink: r.link,
+                                    tag: r.tag as 'positive' | 'negative' | 'neutral'
+                                })),
+                                // Fill to 10
+                                ...Array(Math.max(0, 10 - currentPost.redditReviews.length)).fill(null).map(() => ({
+                                    review: '',
+                                    visitLink: '',
+                                    tag: 'neutral' as const
+                                }))
+                              ]
                             : Array(10).fill(null).map(() => ({
                                 review: '',
                                 visitLink: '',
@@ -122,7 +131,7 @@ const UpdateProductPostForm: React.FC = () => {
         }
     }, [postId, router]);
 
-    const handleInputChange = (field: keyof ProductFormData, value: any) => {
+    const handleInputChange = <K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));

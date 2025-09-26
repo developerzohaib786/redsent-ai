@@ -8,19 +8,7 @@ interface RedditComment {
   subreddit?: string;
 }
 
-interface RedditPost {
-  data: {
-    children: Array<{
-      data: {
-        body?: string;
-        author: string;
-        permalink: string;
-        subreddit: string;
-        score: number;
-      };
-    }>;
-  };
-}
+// Removed unused RedditPost interface
 
 export async function POST(request: NextRequest) {
   try {
@@ -95,13 +83,21 @@ async function getRedditAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-async function searchRedditComments(productTitle: string, token: string): Promise<any[]> {
+type ExtractedRedditComment = {
+  body: string;
+  author: string;
+  permalink: string;
+  subreddit: string;
+  score?: number;
+};
+
+async function searchRedditComments(productTitle: string, token: string): Promise<ExtractedRedditComment[]> {
   const userAgent = process.env.REDDIT_USER_AGENT;
   const searchQuery = encodeURIComponent(productTitle);
   
   // Search in multiple relevant subreddits
   const subreddits = ['products', 'reviews', 'BuyItForLife', 'gadgets', 'technology', 'AskReddit'];
-  const allComments: any[] = [];
+  const allComments: unknown[] = [];
 
   for (const subreddit of subreddits) {
     try {
@@ -117,7 +113,7 @@ async function searchRedditComments(productTitle: string, token: string): Promis
 
       if (response.ok) {
         const data = await response.json();
-        if (data.data && data.data.children) {
+        if (data && data.data && Array.isArray(data.data.children)) {
           allComments.push(...data.data.children);
         }
       }
@@ -138,11 +134,11 @@ async function searchRedditComments(productTitle: string, token: string): Promis
       }
     );
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.data && data.data.children) {
-        // Get comments from these posts
-        for (const post of data.data.children.slice(0, 10)) {
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.data && Array.isArray(data.data.children)) {
+          // Get comments from these posts
+          for (const post of data.data.children.slice(0, 10)) {
           try {
             const commentsResponse = await fetch(
               `https://oauth.reddit.com${post.data.permalink}.json?limit=20`,
@@ -156,7 +152,7 @@ async function searchRedditComments(productTitle: string, token: string): Promis
 
             if (commentsResponse.ok) {
               const commentsData = await commentsResponse.json();
-              if (commentsData[1] && commentsData[1].data && commentsData[1].data.children) {
+              if (Array.isArray(commentsData) && commentsData[1] && commentsData[1].data && Array.isArray(commentsData[1].data.children)) {
                 allComments.push(...commentsData[1].data.children);
               }
             }
@@ -171,22 +167,25 @@ async function searchRedditComments(productTitle: string, token: string): Promis
   }
 
   // Filter and randomize comments
-  const validComments = allComments
-    .filter(comment => 
-      comment.data && 
-      comment.data.body && 
-      comment.data.body.length > 20 && 
-      comment.data.body.length < 1000 &&
-      !comment.data.body.includes('[deleted]') &&
-      !comment.data.body.includes('[removed]')
-    )
-    .map(comment => ({
-      body: comment.data.body,
-      author: comment.data.author,
-      permalink: `https://reddit.com${comment.data.permalink}`,
-      subreddit: comment.data.subreddit,
-      score: comment.data.score || 0
-    }));
+  const validComments: ExtractedRedditComment[] = allComments
+    .filter((c): c is Record<string, unknown> => typeof c === 'object' && c !== null && 'data' in (c as Record<string, unknown>))
+    .map(c => (c as Record<string, unknown>).data as Record<string, unknown>)
+    .filter(d => typeof d?.body === 'string' && d.body.length > 20 && d.body.length < 1000 && !String(d.body).includes('[deleted]') && !String(d.body).includes('[removed]'))
+    .map(d => {
+      const dd = d as Record<string, unknown>;
+      const body = typeof dd['body'] === 'string' ? dd['body'] as string : '';
+      const author = typeof dd['author'] === 'string' ? dd['author'] as string : 'unknown';
+      const permalink = typeof dd['permalink'] === 'string' ? dd['permalink'] as string : '';
+      const subreddit = typeof dd['subreddit'] === 'string' ? dd['subreddit'] as string : 'unknown';
+      const score = typeof dd['score'] === 'number' ? dd['score'] as number : 0;
+      return {
+        body: String(body),
+        author: String(author),
+        permalink: `https://reddit.com${String(permalink)}`,
+        subreddit: String(subreddit),
+        score,
+      } as ExtractedRedditComment;
+    });
 
   // Randomize and limit to 30-50 comments
   const shuffled = validComments.sort(() => 0.5 - Math.random());
@@ -194,7 +193,7 @@ async function searchRedditComments(productTitle: string, token: string): Promis
   return shuffled.slice(0, Math.min(targetCount, shuffled.length));
 }
 
-async function processCommentsWithLLM(comments: any[]): Promise<RedditComment[]> {
+async function processCommentsWithLLM(comments: ExtractedRedditComment[]): Promise<RedditComment[]> {
   if (comments.length === 0) {
     return [];
   }
@@ -246,11 +245,27 @@ Return only valid JSON array, no additional text:`;
     }
 
     const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
-    
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (typeof text !== 'string') {
+      throw new Error('Invalid LLM response');
+    }
+
     // Clean the response and parse JSON
     const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const processedComments = JSON.parse(cleanedText);
+    const parsed = JSON.parse(cleanedText);
+
+    // Basic runtime validation: expect an array of objects with required fields
+    if (!Array.isArray(parsed)) throw new Error('LLM returned non-array');
+    const processedComments: RedditComment[] = (parsed as unknown[]).map((p) => {
+      const obj = p as Record<string, unknown>;
+      return {
+        comment: String(obj.comment ?? obj.commentText ?? ''),
+        tag: (obj.tag === 'positive' || obj.tag === 'negative') ? (obj.tag as 'positive' | 'negative') : 'neutral',
+        link: String(obj.link ?? obj.permalink ?? ''),
+        author: typeof obj.author === 'string' ? obj.author : undefined,
+        subreddit: typeof obj.subreddit === 'string' ? obj.subreddit : undefined,
+      } as RedditComment;
+    });
 
     return processedComments;
 

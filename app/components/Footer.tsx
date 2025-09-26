@@ -21,7 +21,7 @@ const Footer = () => {
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-lime-400"
+              className="text-[#FF5F1F]"
             >
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
               <polyline points="7.5 4.21 12 6.81 16.5 4.21" />
@@ -33,8 +33,8 @@ const Footer = () => {
             <span className="text-white font-semibold text-lg">Reddit Reviews</span>
           </div>
           <p className="text-sm">
-            A library created with <span className="text-lime-400">♥</span> by{" "}
-            <Link href="https://github.com/developerzohaib786" target="_blank" className="text-lime-400 hover:underline">
+            A library created with <span className="text-[#FF5F1F]">♥</span> by{" "}
+            <Link href="https://github.com/developerzohaib786" target="_blank" className="text-[#FF5F1F] hover:underline">
               developerzohaib
             </Link>
           </p>
@@ -42,10 +42,10 @@ const Footer = () => {
 
         {/* Right section nav */}
         <div className="flex flex-wrap justify-center md:justify-end gap-6 text-sm">
-          <Link href="/products" className="hover:text-lime-400 transition-colors">All Products</Link>
-          <Link href="/categories" className="hover:text-lime-400 transition-colors">Ranked Categories</Link>
-          <Link href="/faqs" className="hover:text-lime-400 transition-colors">Faqs</Link>
-          <Link href="/login" className="hover:text-lime-400 transition-colors">Admin</Link>
+          <Link href="/products" className="hover:text-[#FF5F1F] transition-colors">All Products</Link>
+          <Link href="/categories" className="hover:text-[#FF5F1F] transition-colors">Ranked Categories</Link>
+          <Link href="/faqs" className="hover:text-[#FF5F1F] transition-colors">Faqs</Link>
+          <Link href="/login" className="hover:text-[#FF5F1F] transition-colors">Admin</Link>
         </div>
       </div>
 

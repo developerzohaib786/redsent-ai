@@ -15,7 +15,7 @@ export default function Navbar() {
   const [isOpen, setisOpen] = useState(false);
   return (
     <>
-      <section className="py-4 lg:py-8 fixed w-full top-0 bg-black backdrop-blur z-50">
+      <section className="py-4 lg:py-8 fixed w-full top-0 backdrop-blur z-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="bg-neutral-900/70 backdrop-blur border border-white/15 rounded-[27px] md:rounded-full">
             <div className="flex items-center justify-between p-2 px-4 md:pr-2">
@@ -32,7 +32,7 @@ export default function Navbar() {
                   strokeWidth={2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="feather feather-codesandbox text-lime-400 h-9 w-auto"
+                  className="feather feather-codesandbox text-[#FF5F1F] h-9 w-auto"
                 >
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                   <polyline points="7.5 4.21 12 6.81 16.5 4.21" />
@@ -43,7 +43,7 @@ export default function Navbar() {
                   <line x1={12} y1={22.08} x2={12} y2={12} />
                   <line x1={12} y1={22.08} x2={12} y2={12} />
                 </svg>
-                <span className="text-lime-400 font-bold text-xl">Reddit Reviews</span>
+                <span className="text-[#FF5F1F] font-bold text-xl">Reddit Reviews</span>
               </div>
 
               {/* Middle: Nav Links */}

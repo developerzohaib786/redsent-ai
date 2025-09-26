@@ -41,25 +41,32 @@ export async function POST(request: NextRequest) {
             }
         }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("User Registration Error: ", error);
-        
-        // Handle specific MongoDB errors
-        if (error.code === 11000) {
-            return NextResponse.json({
-                error: "User with this email already exists"
-            }, { status: 400 });
+
+        // Narrow the unknown error to an object so we can safely access properties
+        if (typeof error === 'object' && error !== null) {
+            // Using a generic unknown-record and narrow fields safely
+            const errObj = error as Record<string, unknown>;
+
+            // Handle specific MongoDB duplicate key error (code 11000)
+            if (typeof errObj.code === 'number' && errObj.code === 11000) {
+                return NextResponse.json({
+                    error: "User with this email already exists"
+                }, { status: 400 });
+            }
+
+            // Handle Mongoose validation errors
+            if (typeof errObj.name === 'string' && errObj.name === 'ValidationError') {
+                const details = typeof errObj.message === 'string' ? errObj.message : String(errObj.message ?? '');
+                return NextResponse.json({
+                    error: "Invalid input data",
+                    details
+                }, { status: 400 });
+            }
         }
 
-        // Handle validation errors
-        if (error.name === 'ValidationError') {
-            return NextResponse.json({
-                error: "Invalid input data",
-                details: error.message
-            }, { status: 400 });
-        }
-
-        // Generic error response
+        // Generic error response for unknown/error types
         return NextResponse.json({
             error: "Internal server error during registration"
         }, { status: 500 });

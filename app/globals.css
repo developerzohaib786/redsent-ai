@@ -47,7 +47,7 @@
   --radius: 0.625rem;
 
   /* Base light mode */
-  --background: oklch(1 0 0);         /* white */
+  --background: oklch(18.791% 0.00162 16.574);         /* white */
   --foreground: oklch(0.145 0 0);     /* near black */
 
   --card: oklch(1 0 0);
@@ -151,6 +151,46 @@
   }
   body {
     @apply bg-background text-foreground;
+    position: relative;
+  }
+  
+  /* Global Orange Background Effects */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background-color: #FF5F1F;
+    opacity: 0.2;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: -1;
+    animation: pulse 4s ease-in-out infinite;
+  }
+  
+  body::before {
+    top: -160px;
+    right: -160px;
+    animation-delay: 0s;
+  }
+  
+  body::after {
+    bottom: -160px;
+    left: -160px;
+    animation-delay: 2s;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.2;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.3;
+    }
   }
 }
 
@@ -159,6 +199,7 @@
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE & Edge */
+  -ms-overflow-style: no
+  ne; /* IE & Edge */
   scrollbar-width: none; /* Firefox */
 }

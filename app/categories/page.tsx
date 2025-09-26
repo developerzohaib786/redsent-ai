@@ -60,7 +60,7 @@ const CategoriesGrid: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            Product <span className="text-lime-400">Categories</span>
+            Product <span className="text-[#FF5F1F]">Categories</span>
           </h1>
           <p className="text-gray-400 mb-4">
             Browse all available product categories
@@ -70,7 +70,7 @@ const CategoriesGrid: React.FC = () => {
             placeholder="Search categories..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent"
+            className="w-full bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF5F1F] focus:border-transparent"
           />
         </div>
 
@@ -87,7 +87,7 @@ const CategoriesGrid: React.FC = () => {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="bg-lime-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-lime-500 transition-colors"
+                className="bg-[#FF5F1F] text-black px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F]/90 transition-colors"
               >
                 Clear Search
               </button>
@@ -99,9 +99,9 @@ const CategoriesGrid: React.FC = () => {
               <Link
                 key={cat}
                 href={`/categories/${cat.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}
-                className="bg-gray-900 rounded-xl p-6 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-lime-400/50 cursor-pointer block"
+                className="bg-gray-900 rounded-xl p-6 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-[#FF5F1F]/50 cursor-pointer block"
               >
-                <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-lime-400 transition-colors">
+                <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-[#FF5F1F] transition-colors">
                   {cat}
                 </h3>
               </Link>

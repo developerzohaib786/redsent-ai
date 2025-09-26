@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import FileUpload from '@/app/components/FileUpload';
-import { IProduct } from '@/models/post';
-import { Plus, X, MessageSquare } from 'lucide-react';
+import { IProduct, IRedditReview } from '@/models/post';
+import { Plus, X } from 'lucide-react';
 
-interface PostListProps { }
-
-const AllPosts: React.FC<PostListProps> = () => {
+const AllPosts: React.FC = () => {
     // ... existing AllPosts code remains the same ...
     const router = useRouter();
     const [posts, setPosts] = useState<IProduct[]>([]);
@@ -221,7 +219,7 @@ const AllPosts: React.FC<PostListProps> = () => {
                     <p className="text-gray-600 text-lg mb-4">No posts found</p>
                     <button
                         onClick={() => window.location.href = '/dashboard/addpost'}
-                        className="bg-lime-400 text-white px-6 py-2 rounded-lg hover:bg-lime-500 transition-colors"
+                        className="bg-[#FF5F1F] text-white px-6 py-2 rounded-lg hover:bg-lime-500 transition-colors"
                     >
                         Create Your First Post
                     </button>
@@ -268,7 +266,7 @@ const AllPosts: React.FC<PostListProps> = () => {
                                     <button
                                         onClick={() => handleUpdate(post)}
                                         disabled={updateLoading === post._id?.toString()}
-                                        className="bg-lime-400 cursor-pointer text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-lime-500 transition-colors min-w-[80px] disabled:opacity-50"
+                                        className="bg-[#FF5F1F] cursor-pointer text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-lime-500 transition-colors min-w-[80px] disabled:opacity-50"
                                     >
                                         {updateLoading === post._id?.toString() ? 'Updating...' : 'Update'}
                                     </button>
@@ -335,7 +333,7 @@ const AllPosts: React.FC<PostListProps> = () => {
                                         onClick={() => goToPage(page)}
                                         className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                                             isCurrentPage
-                                                ? 'bg-lime-400 text-white border border-lime-400'
+                                                ? 'bg-[#FF5F1F] text-white border border-[#FF5F1F]'
                                                 : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
                                         }`}
                                     >
@@ -400,7 +398,6 @@ const EditPostModal: React.FC<{
     // Debug effect to check initial form data
     useEffect(() => {
         console.log('Form data initialized:', formData);
-        console.log('Reddit reviews in form data:', formData.redditReviews);
     }, [formData]);
 
     // Pros functions
@@ -453,13 +450,22 @@ const EditPostModal: React.FC<{
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        let redditReviews: any[] = [];
+        let redditReviews: IRedditReview[] = [];
         try {
-            redditReviews = JSON.parse(redditReviewsInput);
+            const parsed = JSON.parse(redditReviewsInput);
+            if (!Array.isArray(parsed)) throw new Error('Not an array');
+            redditReviews = parsed.map((p) => ({
+                comment: String(p.comment ?? p.commentText ?? ''),
+                tag: p.tag === 'positive' || p.tag === 'negative' ? p.tag : 'neutral',
+                link: String(p.link ?? p.permalink ?? ''),
+                author: typeof p.author === 'string' ? p.author : '',
+                subreddit: typeof p.subreddit === 'string' ? p.subreddit : '',
+            }));
         } catch {
             alert('Reddit reviews must be a valid JSON array.');
             return;
         }
+
         const cleanedData = {
             ...formData,
             pros: formData.pros.filter(pro => pro.trim() !== ''),
@@ -706,7 +712,7 @@ const EditPostModal: React.FC<{
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-6 py-3 bg-lime-400 text-white rounded-lg hover:bg-lime-500 disabled:opacity-50 font-medium"
+                            className="flex-1 px-6 py-3 bg-[#FF5F1F] text-white rounded-lg hover:bg-lime-500 disabled:opacity-50 font-medium"
                             disabled={isLoading}
                         >
                             {isLoading ? 'Updating...' : 'Update Post'}

@@ -39,6 +39,7 @@ interface ValidationErrors {
     cons?: string;
     redditReviews?: string;
     productScore?: string;
+    category?: string;
 }
 
 interface UploadResponse {
@@ -70,11 +71,12 @@ const ProductPostForm: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<{ [key: number]: number }>({});
 
-    const handleInputChange = (field: keyof ProductFormData, value: any) => {
+    const handleInputChange = <K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         // Clear error when user starts typing
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: undefined }));
+        const eKey = field as unknown as keyof ValidationErrors;
+        if (errors[eKey]) {
+            setErrors(prev => ({ ...prev, [eKey]: undefined }));
         }
     };
 
@@ -322,7 +324,8 @@ const ProductPostForm: React.FC = () => {
                     affiliateLinkText: '',
                     pros: [''],
                     cons: [''],
-                    redditReviews: [],
+                        redditReviews: [],
+                        category: '',
                     productScore: 50,
                     productRank: undefined,
                 });

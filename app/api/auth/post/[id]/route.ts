@@ -6,9 +6,10 @@ import mongoose from "mongoose";
 // GET single product by ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Await the params Promise
         const { id } = await params;
 
         // Validate ObjectId

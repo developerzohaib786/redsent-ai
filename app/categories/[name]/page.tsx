@@ -61,7 +61,7 @@ const CategoryProducts: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            {categoryName} <span className="text-lime-400">Products</span>
+            {categoryName} <span className="text-[#FF5F1F]">Products</span>
           </h1>
           <p className="text-gray-400">
             Showing {filtered.length} products ranked based on reddit reviews
@@ -90,7 +90,7 @@ const CategoryProducts: React.FC = () => {
                 className="block"
                 key={product._id?.toString()}
               >
-                <div className="bg-gray-900 rounded-xl p-6 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-lime-400/50 group cursor-pointer relative">
+                <div className="bg-gray-900 rounded-xl p-6 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-[#FF5F1F]/50 group cursor-pointer relative">
                   {/* Product Image */}
                   <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-800">
                     {product.productPhotos && product.productPhotos.length > 0 ? (
@@ -116,8 +116,8 @@ const CategoryProducts: React.FC = () => {
                     <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-full">
                       <div className="flex items-center px-2 gap-1">
                         <span className="text-white">Product Score: </span>
-                        <Star className="w-3 h-3 fill-lime-400 text-lime-400" />
-                        <span className="text-lime-400 text-sm font-semibold">
+                        <Star className="w-3 h-3 fill-[#FF5F1F] text-[#FF5F1F]" />
+                        <span className="text-[#FF5F1F] text-sm font-semibold">
                           {product.productScore}
                         </span>
                       </div>
@@ -129,14 +129,14 @@ const CategoryProducts: React.FC = () => {
                   </div>
                   {/* Product Info */}
                   <div className="space-y-3">
-                    <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-lime-400 transition-colors">
+                    <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-[#FF5F1F] transition-colors">
                       {product.productTitle}
                     </h3>
                     <p className="text-gray-400 text-sm line-clamp-3">
                       {product.productDescription}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-lime-400">
+                      <span className="text-2xl font-bold text-[#FF5F1F]">
                         {product.productPrice}
                       </span>
                       <span className="text-gray-400 text-xs">
