@@ -244,9 +244,9 @@ export default function RedditReviewsGenerator() {
                               variant="outline"
                               size="sm"
                               onClick={() => copyToClipboard(message.comments!)}
-                              className="flex items-center gap-2"
+                              className="flex items-center gap-2 bg-white"
                             >
-                              <Copy className="w-3 h-3" />
+                              <Copy className="w-3 h-3 bg-white" />
                               Copy Array
                             </Button>
                           </div>
