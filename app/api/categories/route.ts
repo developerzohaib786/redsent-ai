@@ -8,7 +8,6 @@ export async function GET() {
     try {
         await connectToDatabase();
         const categories = await Category.find({}).sort({ createdAt: -1 });
-
         return NextResponse.json({
             success: true,
             data: categories
@@ -27,7 +26,6 @@ export async function POST(request: NextRequest) {
     try {
         await connectToDatabase();
         const body = await request.json();
-
         const { name, image } = body;
 
         // Validation
@@ -64,10 +62,11 @@ export async function POST(request: NextRequest) {
             message: 'Category created successfully'
         }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error creating category:', error);
 
-        if (error.code === 11000) {
+        // Type guard for MongoError
+        if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: number }).code === 11000) {
             return NextResponse.json(
                 { success: false, error: 'Category name must be unique' },
                 { status: 409 }

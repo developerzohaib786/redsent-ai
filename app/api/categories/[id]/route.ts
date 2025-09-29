@@ -7,12 +7,11 @@ import mongoose from 'mongoose';
 // GET - Fetch single category by ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await context.params;
     try {
         await connectToDatabase();
-
-        const { id } = params;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return NextResponse.json(
@@ -46,12 +45,12 @@ export async function GET(
 // PUT - Update category by ID
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectToDatabase();
 
-        const { id } = params;
+        const { id } = await params;
         const body = await request.json();
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -110,10 +109,11 @@ export async function PUT(
             message: 'Category updated successfully'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error updating category:', error);
 
-        if (error.code === 11000) {
+        // Type guard for MongoError
+        if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: number }).code === 11000) {
             return NextResponse.json(
                 { success: false, error: 'Category name must be unique' },
                 { status: 409 }
@@ -130,12 +130,12 @@ export async function PUT(
 // DELETE - Delete category by ID
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectToDatabase();
 
-        const { id } = params;
+        const { id } = await params;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return NextResponse.json(
