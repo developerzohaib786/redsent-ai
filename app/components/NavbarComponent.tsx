@@ -100,8 +100,12 @@ export default function Navbar() {
                     {navLinks.map((i) =>
                       <a href={i.href} key={i.label} className="">{i.label}</a>
                     )}
-                    <Button variant="primary">Log In</Button>
-                    <Button variant="secondary">Sign Up</Button>
+                    <Link href="/categories">
+                      <Button variant="primary">Ranked Categories</Button>
+                    </Link>
+                    <Link href="/products">
+                      <Button variant="secondary">All Products</Button>
+                    </Link>
                   </div>
                 </motion.div>
               )}
