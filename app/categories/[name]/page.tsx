@@ -132,9 +132,52 @@ const CategoryProducts: React.FC = () => {
                     <h3 className="text-xl font-bold text-white line-clamp-1 group-hover:text-[#FF5F1F] transition-colors">
                       {product.productTitle}
                     </h3>
-                    <p className="text-gray-400 text-sm line-clamp-3">
-                      {product.productDescription}
-                    </p>
+
+                    {/* Review Percentage Bars */}
+                    <div className="space-y-2">
+                      {/* Positive Reviews */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-green-400">Positive</span>
+                          <span className="text-green-400">{product.positiveReviewPercentage || 0}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${product.positiveReviewPercentage || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Neutral Reviews */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-yellow-400">Neutral</span>
+                          <span className="text-yellow-400">{product.neutralReviewPercentage || 0}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${product.neutralReviewPercentage || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Negative Reviews */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-red-400">Negative</span>
+                          <span className="text-red-400">{product.negativeReviewPercentage || 0}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${product.negativeReviewPercentage || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="flex items-center justify-between">
                       <span className="text-2xl font-bold text-[#FF5F1F]">
                         {product.productPrice}

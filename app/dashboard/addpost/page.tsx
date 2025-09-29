@@ -81,6 +81,13 @@ const ProductPostForm: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Review percentages
+    const [reviewPercentages, setReviewPercentages] = useState({
+        positive: 0,
+        negative: 0,
+        neutral: 0
+    });
+
 
 
     const handleInputChange = <K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
@@ -185,7 +192,26 @@ const ProductPostForm: React.FC = () => {
         }));
     };
 
-    // No longer needed: updateRedditReview
+    // Calculate review percentages from redditReviewsInput
+    useEffect(() => {
+        let reviews: RedditReview[] = [];
+        try {
+            if (redditReviewsInput.trim()) {
+                reviews = JSON.parse(redditReviewsInput);
+            }
+        } catch {
+            // ignore parse error
+        }
+        const total = reviews.length;
+        const positive = reviews.filter(r => r.tag === 'positive').length;
+        const negative = reviews.filter(r => r.tag === 'negative').length;
+        const neutral = reviews.filter(r => r.tag === 'neutral').length;
+        setReviewPercentages({
+            positive: total > 0 ? Math.round((positive / total) * 100) : 0,
+            negative: total > 0 ? Math.round((negative / total) * 100) : 0,
+            neutral: total > 0 ? Math.round((neutral / total) * 100) : 0
+        });
+    }, [redditReviewsInput]);
 
     const validateData = (): boolean => {
         const newErrors: ValidationErrors = {};
@@ -387,6 +413,22 @@ const ProductPostForm: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg">
             <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Create Product Post</h1>
+
+            {/* Review Percentages Display */}
+            <div className="flex gap-6 justify-center mb-8">
+                <div className="flex flex-col items-center">
+                    <span className="font-semibold text-green-600">Positive</span>
+                    <span className="text-lg">{reviewPercentages.positive}%</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <span className="font-semibold text-red-600">Negative</span>
+                    <span className="text-lg">{reviewPercentages.negative}%</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <span className="font-semibold text-gray-600">Neutral</span>
+                    <span className="text-lg">{reviewPercentages.neutral}%</span>
+                </div>
+            </div>
 
             <div className="space-y-8">
                 {/* Category */}
@@ -654,7 +696,7 @@ const ProductPostForm: React.FC = () => {
                         onClick={() => {
                             calculateProductRank();
                         }}
-                        className="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-all mb-2"
+                        className="bg-blue-500 cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-all mb-2"
                     >
                         Generate Product Rank{typeof formData.productRank === 'number' ? `: ${formData.productRank}%` : ''}
                     </button>
@@ -666,7 +708,7 @@ const ProductPostForm: React.FC = () => {
                         type="button"
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="w-full bg-[#FF5F1F] text-white py-4 px-6 rounded-lg font-semibold hover:bg-[#f59772] focus:ring-2 focus:ring-[#f59772] focus:ring-offset-2 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        className="w-full bg-[#FF5F1F] text-white py-4 cursor-pointer px-6 rounded-lg font-semibold hover:bg-[#f59772] focus:ring-2 focus:ring-[#f59772] focus:ring-offset-2 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                         {isSubmitting ? 'Creating Post...' : 'Create Product Post'}
                     </button>

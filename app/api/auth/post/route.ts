@@ -3,7 +3,7 @@ import { connectToDatabase } from "@/lib/mongodb"
 import Product, { IProduct } from "@/models/post";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose"; 
+import mongoose from "mongoose";
 
 // ----- GET All POSTs API ----- >
 
@@ -92,6 +92,15 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Calculate review percentages
+        const totalReviews = validReviews.length;
+        const positiveCount = validReviews.filter(r => r.tag === 'positive').length;
+        const negativeCount = validReviews.filter(r => r.tag === 'negative').length;
+        const neutralCount = validReviews.filter(r => r.tag === 'neutral').length;
+        const positiveReviewPercentage = totalReviews > 0 ? Math.round((positiveCount / totalReviews) * 100) : 0;
+        const negativeReviewPercentage = totalReviews > 0 ? Math.round((negativeCount / totalReviews) * 100) : 0;
+        const neutralReviewPercentage = totalReviews > 0 ? Math.round((neutralCount / totalReviews) * 100) : 0;
+
         // Prepare product data
         const productData: Partial<IProduct> = {
             productTitle: body.productTitle.trim(),
@@ -105,7 +114,10 @@ export async function POST(request: NextRequest) {
             redditReviews: validReviews,
             productScore: body.productScore ?? 50,
             productRank: typeof body.productRank === 'number' ? body.productRank : undefined,
-            category: body.category
+            category: body.category,
+            positiveReviewPercentage,
+            negativeReviewPercentage,
+            neutralReviewPercentage
         };
 
         const newProduct = await Product.create(productData);
@@ -131,86 +143,99 @@ export async function POST(request: NextRequest) {
 // ----- Update POST API ----- >
 
 export async function PUT(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized action" }, { status: 401 });
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized action" }, { status: 401 });
+        }
+
+        await connectToDatabase();
+        const body = await request.json();
+        const { id, ...updateData } = body;
+
+        if (!id) {
+            return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
+        }
+
+        // Validate required fields
+        // if (
+        //   !updateData.productTitle ||
+        //   !updateData.productDescription ||
+        //   !updateData.productPrice ||
+        //   !updateData.affiliateLink ||
+        //   !updateData.affiliateLinkText ||
+        //   !updateData.category
+        // ) {
+        //   return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        // }
+
+        // Validate pros and cons arrays
+        const validPros = updateData.pros?.filter((pro: string) => pro.trim().length > 0) || [];
+        const validCons = updateData.cons?.filter((con: string) => con.trim().length > 0) || [];
+
+        if (validPros.length === 0) {
+            return NextResponse.json({ error: "At least one pro is required" }, { status: 400 });
+        }
+
+        if (validCons.length === 0) {
+            return NextResponse.json({ error: "At least one con is required" }, { status: 400 });
+        }
+
+        // Calculate review percentages
+        const reviews = updateData.redditReviews || [];
+        const totalReviews = reviews.length;
+        const positiveCount = reviews.filter((r: { tag: string }) => r.tag === 'positive').length;
+        const negativeCount = reviews.filter((r: { tag: string }) => r.tag === 'negative').length;
+        const neutralCount = reviews.filter((r: { tag: string }) => r.tag === 'neutral').length;
+        const positiveReviewPercentage = totalReviews > 0 ? Math.round((positiveCount / totalReviews) * 100) : 0;
+        const negativeReviewPercentage = totalReviews > 0 ? Math.round((negativeCount / totalReviews) * 100) : 0;
+        const neutralReviewPercentage = totalReviews > 0 ? Math.round((neutralCount / totalReviews) * 100) : 0;
+
+        // Prepare update data with schema alignment
+        const productUpdateData = {
+            productTitle: updateData.productTitle.trim(),
+            productDescription: updateData.productDescription.trim(),
+            productPhotos: updateData.productPhotos?.filter((photo: string) => photo.trim() !== "") || [],
+            productPrice: updateData.productPrice.trim(),
+            affiliateLink: updateData.affiliateLink.trim(),
+            affiliateLinkText: updateData.affiliateLinkText.trim(),
+            pros: validPros,
+            cons: validCons,
+            redditReviews: reviews,
+            productScore: updateData.productScore ?? 50,
+            productRank: updateData.productRank ?? undefined,
+            category: updateData.category,
+            likeCount: updateData.likeCount ?? 0,
+            likedBy: updateData.likedBy || [],
+            anonymousLikeCount: updateData.anonymousLikeCount ?? 0,
+            anonymousLikedBy: updateData.anonymousLikedBy || [],
+            positiveReviewPercentage,
+            negativeReviewPercentage,
+            neutralReviewPercentage
+        };
+
+        const updatedProduct = await Product.findByIdAndUpdate(id, productUpdateData, {
+            new: true,
+            runValidators: true
+        });
+
+        if (!updatedProduct) {
+            return NextResponse.json({ error: "Product not found" }, { status: 404 });
+        }
+
+        return NextResponse.json(updatedProduct, { status: 200 });
+    } catch (error) {
+        console.error("Error updating product:", error);
+
+        if (error instanceof Error && error.name === "ValidationError") {
+            return NextResponse.json(
+                { error: "Validation failed", details: error.message },
+                { status: 400 }
+            );
+        }
+
+        return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
     }
-
-    await connectToDatabase();
-    const body = await request.json();
-    const { id, ...updateData } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
-    }
-
-    // Validate required fields
-    // if (
-    //   !updateData.productTitle ||
-    //   !updateData.productDescription ||
-    //   !updateData.productPrice ||
-    //   !updateData.affiliateLink ||
-    //   !updateData.affiliateLinkText ||
-    //   !updateData.category
-    // ) {
-    //   return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    // }
-
-    // Validate pros and cons arrays
-    const validPros = updateData.pros?.filter((pro: string) => pro.trim().length > 0) || [];
-    const validCons = updateData.cons?.filter((con: string) => con.trim().length > 0) || [];
-
-    if (validPros.length === 0) {
-      return NextResponse.json({ error: "At least one pro is required" }, { status: 400 });
-    }
-
-    if (validCons.length === 0) {
-      return NextResponse.json({ error: "At least one con is required" }, { status: 400 });
-    }
-
-    // Prepare update data with schema alignment
-    const productUpdateData = {
-      productTitle: updateData.productTitle.trim(),
-      productDescription: updateData.productDescription.trim(),
-      productPhotos: updateData.productPhotos?.filter((photo: string) => photo.trim() !== "") || [],
-      productPrice: updateData.productPrice.trim(),
-      affiliateLink: updateData.affiliateLink.trim(),
-      affiliateLinkText: updateData.affiliateLinkText.trim(),
-      pros: validPros,
-      cons: validCons,
-      redditReviews: updateData.redditReviews || [],
-      productScore: updateData.productScore ?? 50,
-      productRank: updateData.productRank ?? undefined,
-      category: updateData.category,
-      likeCount: updateData.likeCount ?? 0,
-      likedBy: updateData.likedBy || [],
-      anonymousLikeCount: updateData.anonymousLikeCount ?? 0,
-      anonymousLikedBy: updateData.anonymousLikedBy || []
-    };
-
-    const updatedProduct = await Product.findByIdAndUpdate(id, productUpdateData, {
-      new: true,
-      runValidators: true
-    });
-
-    if (!updatedProduct) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(updatedProduct, { status: 200 });
-  } catch (error) {
-    console.error("Error updating product:", error);
-
-    if (error instanceof Error && error.name === "ValidationError") {
-      return NextResponse.json(
-        { error: "Validation failed", details: error.message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
-  }
 }
 
 // ----- Delete POST API ----- >

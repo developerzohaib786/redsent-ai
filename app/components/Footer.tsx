@@ -6,7 +6,7 @@ const Footer = () => {
   return (
     <footer className="w-full border-t border-white/10 bg-black text-gray-400">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center py-8 px-6 gap-4">
-        
+
         {/* Left section */}
         <div className="flex flex-col items-center md:items-start gap-2">
           <div className="flex items-center gap-2">
@@ -44,8 +44,8 @@ const Footer = () => {
         <div className="flex flex-wrap justify-center md:justify-end gap-6 text-sm">
           <Link href="/products" className="hover:text-[#FF5F1F] transition-colors">All Products</Link>
           <Link href="/categories" className="hover:text-[#FF5F1F] transition-colors">Ranked Categories</Link>
-          <Link href="/faqs" className="hover:text-[#FF5F1F] transition-colors">Faqs</Link>
-          <Link href="/login" className="hover:text-[#FF5F1F] transition-colors">Admin</Link>
+          <Link href="/faqs" className="hover:text-[#FF5F1F] transition-colors">FAQs</Link>
+          <Link href="/privacy-policy" className="hover:text-[#FF5F1F] transition-colors">Privacy Policy</Link>
         </div>
       </div>
 

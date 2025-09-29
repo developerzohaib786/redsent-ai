@@ -16,6 +16,9 @@ export interface IProduct {
     productPrice: string;
     affiliateLink: string;
     affiliateLinkText: string;
+    positiveReviewPercentage?: number;
+    neutralReviewPercentage?: number;
+    negativeReviewPercentage?: number;
     pros: string[];
     cons: string[];
     redditReviews: IRedditReview[];
@@ -129,6 +132,24 @@ const productSchema = new Schema({
     redditReviews: {
         type: [redditReviewSchema],
         default: []
+    },
+    positiveReviewPercentage: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    negativeReviewPercentage: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    neutralReviewPercentage: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
     },
     productScore: {
         type: Number,
