@@ -17,7 +17,7 @@ export default function Navbar() {
     <>
       <section className="py-4 lg:py-8 fixed w-full top-0 backdrop-blur z-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-neutral-900/70 backdrop-blur border border-white/15 rounded-[27px] md:rounded-full">
+          <div className="bg-neutral-900/70 backdrop-blur border border-white/15 text-white rounded-[27px] md:rounded-full">
             <div className="flex items-center justify-between p-2 px-4 md:pr-2">
 
               {/* Left: Logo */}
@@ -47,7 +47,7 @@ export default function Navbar() {
               </div>
 
               {/* Middle: Nav Links */}
-              <nav className="hidden lg:flex gap-6 font-medium text-white ">
+              <nav className="hidden lg:flex gap-6 font-medium !text-white ">
                 {navLinks.map((i) => (
                   <a href={i.href} key={i.label}>
                     {i.label}
@@ -69,7 +69,7 @@ export default function Navbar() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   onClick={() => setisOpen(!isOpen)}
-                  className="feather feather-menu md:hidden cursor-pointer"
+                  className="feather feather-menu md:hidden text-white cursor-pointer"
                 >
                   <line x1={3} y1={12} x2={21} y2={12} className={twMerge('origin-center transition-transform duration-300', isOpen && 'rotate-45 translate-0.5 translate-y-1')} />
                   <line x1={3} y1={6} x2={21} y2={6} className={twMerge('origin-center transition-all duration-300', isOpen && 'opacity-0 rotate-180')} />
@@ -84,7 +84,7 @@ export default function Navbar() {
                 </Link>
                 <Link href="/products">
                   <Button variant="primary" className="hidden cursor-pointer md:inline-flex items-center">
-                    Products
+                    All Products
                   </Button>
                 </Link>
               </div>
