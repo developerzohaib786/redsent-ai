@@ -47,7 +47,7 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
         setUploading(true);
         setError(null);
         try {
-            const authResponse = await axios.get('http://localhost:3000/api/auth/imagekit-auth');
+            const authResponse = await axios.get('https://ecomerce-store-e2wm.vercel.app/api/auth/imagekit-auth');
             const auth = authResponse.data;
             
             // Debug logging
