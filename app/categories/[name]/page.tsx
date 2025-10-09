@@ -43,7 +43,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => (
     </div>
 
     {/* Product Image */}
-    <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
+     <Link href={`/products/${product._id?.toString()}-${idx + 1}`}>
+    <div className="relative cursor-pointer w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
       {product.productPhotos && product.productPhotos.length > 0 ? (
         <Image
           src={product.productPhotos[0]}
@@ -63,6 +64,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => (
         </div>
       )}
     </div>
+    </Link>
 
     {/* Product Info */}
     <div className="space-y-3">

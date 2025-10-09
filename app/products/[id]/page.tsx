@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { Star, ExternalLink, ArrowLeft, Share2, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
+import Link from 'next/link';
+import {  ExternalLink, ArrowLeft,  } from 'lucide-react';
 import { IProduct } from '@/models/post';
 
 interface IRedditReview {
@@ -422,7 +423,7 @@ const ProductDetailPage: React.FC = () => {
 
                     <div className="lg:col-span-8 space-y-4">
                         <div className="text-sm text-gray-500">
-                            #{productRank || 1} in <span className="underline cursor-pointer hover:text-[#FF5F1F]">{product.category}</span>
+                            #{productRank || 1} in <Link href={`/categories/${product.category.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}><span className="underline cursor-pointer hover:text-[#FF5F1F]">{product.category}</span></Link>
                         </div>
 
                         <div className="text-sm font-medium text-gray-700">

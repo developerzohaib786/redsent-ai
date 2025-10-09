@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -20,12 +20,14 @@ interface UploadResponse {
 
 const CategoriesGrid: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const params = useParams();
   const rawCategory = params?.name as string || "";
   const categoryName = rawCategory.replace(/-/g, " ");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   // Fetch categories
   const fetchCategories = async () => {
@@ -53,10 +55,34 @@ const CategoriesGrid: React.FC = () => {
     fetchCategories();
   }, []);
 
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Filter categories
   const filteredCategories = categories.filter(cat =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Get suggestions based on search term
+  const suggestions = searchTerm.trim() === '' 
+    ? categories 
+    : categories.filter(cat =>
+        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+  const handleSuggestionClick = (categoryName: string) => {
+    setSearchTerm(categoryName);
+    setShowSuggestions(false);
+  };
 
   if (loading) {
     return (
@@ -93,15 +119,33 @@ const CategoriesGrid: React.FC = () => {
   return (
     <div id='categories' className="bg-white min-h-screen">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <input
-            type="text"
-            placeholder="Search categories..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF5F1F] focus:border-transparent"
-          />
+        {/* Search Bar - Centered and Smaller */}
+        <div className="mb-8 flex justify-center">
+          <div ref={searchRef} className="relative w-full max-w-md">
+            <input
+              type="text"
+              placeholder="Search categories..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF5F1F] focus:border-transparent"
+            />
+            
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {suggestions.map((category) => (
+                  <button
+                    key={category._id}
+                    onClick={() => handleSuggestionClick(category.name)}
+                    className="w-full text-left px-4 py-3 hover:bg-[#FF5F1F]/10 transition-colors border-b border-gray-100 last:border-b-0 text-black"
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Categories Grid */}
