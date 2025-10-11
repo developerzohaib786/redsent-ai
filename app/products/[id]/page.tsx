@@ -5,8 +5,20 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import {  ExternalLink, ArrowLeft,  } from 'lucide-react';
-import { IProduct } from '@/models/post';
+import { ExternalLink, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { IProduct } from '@/models/post'; // Assuming IProduct exists and includes likesAndDislikes
+
+// --- Interface Definitions ---
+
+interface LikeDislikePoint {
+    heading: string;
+    points: string[];
+}
+
+interface LikesDislikesData {
+    likes: LikeDislikePoint[];
+    dislikes: LikeDislikePoint[];
+}
 
 interface IRedditReview {
     comment: string;
@@ -15,6 +27,86 @@ interface IRedditReview {
     author: string;
     subreddit: string;
 }
+
+// --- NEW COMPONENT: LikesDislikesFeature ---
+
+interface LikesDislikesFeatureProps {
+    data: LikeDislikePoint[];
+    type: 'like' | 'dislike';
+}
+
+const LikesDislikesFeature: React.FC<LikesDislikesFeatureProps> = ({ data, type }) => {
+    // State to manage which heading is currently expanded
+    const [expandedHeading, setExpandedHeading] = useState<string | null>(null);
+
+    const toggleExpansion = (heading: string) => {
+        setExpandedHeading(expandedHeading === heading ? null : heading);
+    };
+
+    const isLike = type === 'like';
+    const textColor = isLike ? 'text-green-600' : 'text-red-600';
+    const title = isLike ? 'Positive Things:' : 'Negative Things:';
+    const Icon = expandedHeading ? ChevronUp : ChevronDown;
+
+    return (
+        <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-bold mb-4 border-b pb-2 text-gray-800">{title}</h3>
+            <div className="space-y-3">
+                {data.map((item) => (
+                    <div key={item.heading} className="border-b border-gray-100 last:border-b-0">
+                        <button
+                            onClick={() => toggleExpansion(item.heading)}
+                            className="flex justify-between items-center w-full py-2 px-1 text-left hover:bg-gray-50 transition-colors rounded"
+                        >
+                            <span className={`font-semibold text-sm ${textColor}`}>
+                                {item.heading}
+                            </span>
+                            {/* Display the Chevron icon based on expansion state */}
+                            {expandedHeading === item.heading ? (
+                                <ChevronUp className="w-4 h-4 text-gray-500" />
+                            ) : (
+                                <ChevronDown className="w-4 h-4 text-gray-500" />
+                            )}
+                        </button>
+                        {/* Display points only if the current heading is expanded */}
+                        {expandedHeading === item.heading && (
+                            <ul className="list-disc pl-8 py-2 text-sm text-gray-600 space-y-1 bg-gray-50 rounded-b">
+                                {item.points.map((point, index) => (
+                                    <li key={index} className="pl-1 pr-4">{point}</li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
+// --- NEW COMPONENT: ProductLikesDislikes ---
+
+interface ProductLikesDislikesProps {
+    likesAndDislikes: LikesDislikesData;
+}
+
+const ProductLikesDislikes: React.FC<ProductLikesDislikesProps> = ({ likesAndDislikes }) => {
+    if (!likesAndDislikes || (likesAndDislikes.likes?.length === 0 && likesAndDislikes.dislikes?.length === 0)) {
+        return null;
+    }
+
+    return (
+        <div className="mt-8 pt-6 border-t border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Community Insights</h2>
+            <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
+                <LikesDislikesFeature data={likesAndDislikes.likes || []} type="like" />
+                <LikesDislikesFeature data={likesAndDislikes.dislikes || []} type="dislike" />
+            </div>
+        </div>
+    );
+};
+
+// --- Existing Components (Unchanged) ---
 
 const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
     const [showFullText, setShowFullText] = useState(false);
@@ -165,6 +257,8 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
     );
 };
 
+// --- ProductDetailPage (Main Component) ---
+
 const ProductDetailPage: React.FC = () => {
     const params = useParams();
     const router = useRouter();
@@ -177,7 +271,7 @@ const ProductDetailPage: React.FC = () => {
     const [productRank, setProductRank] = useState<number | null>(null);
 
     useEffect(() => {
-        console.log('Product data is: ->->->  ', product);
+        console.log('Product data is: ->->-> ', product);
     }, [product]);
 
     useEffect(() => {
@@ -212,7 +306,7 @@ const ProductDetailPage: React.FC = () => {
                     const data = await response.json();
                     console.log('Fetched product data: ', data);
                     setProduct(data);
-                    console.log('Product data is: ->->->  ', product)
+                    console.log('Product data is: ->->-> ', product)
                 } catch (err) {
                     setError(err instanceof Error ? err.message : 'An error occurred');
                 } finally {
@@ -243,13 +337,13 @@ const ProductDetailPage: React.FC = () => {
 
     const getTopics = () => {
         if (!product?.redditReviews) return [];
-        
+
         // Extract unique meaningful keywords from reviews
         const topics = new Set<string>();
-        
+
         product.redditReviews.forEach(review => {
             const text = review.comment.toLowerCase();
-            
+
             // Add relevant topics based on common keywords
             if (text.includes('price') || text.includes('cheap') || text.includes('expensive') || text.includes('worth') || text.includes('value')) {
                 topics.add('price/value');
@@ -282,7 +376,7 @@ const ProductDetailPage: React.FC = () => {
                 topics.add('recommendations');
             }
         });
-        
+
         return Array.from(topics).slice(0, 8); // Limit to 8 topics
     };
 
@@ -297,42 +391,42 @@ const ProductDetailPage: React.FC = () => {
     const getFilteredReviews = () => {
         if (!product?.redditReviews) return [];
         if (selectedTopics.length === 0) return product.redditReviews;
-        
+
         return product.redditReviews.filter(review => {
             const text = review.comment.toLowerCase();
-            
+
             return selectedTopics.some(topic => {
                 switch (topic) {
                     case 'price/value':
-                        return text.includes('price') || text.includes('cheap') || text.includes('expensive') || 
-                               text.includes('worth') || text.includes('value') || text.includes('cost') || text.includes('$');
+                        return text.includes('price') || text.includes('cheap') || text.includes('expensive') ||
+                            text.includes('worth') || text.includes('value') || text.includes('cost') || text.includes('$');
                     case 'quality':
-                        return text.includes('quality') || text.includes('build') || text.includes('durable') || 
-                               text.includes('sturdy') || text.includes('solid') || text.includes('premium');
+                        return text.includes('quality') || text.includes('build') || text.includes('durable') ||
+                            text.includes('sturdy') || text.includes('solid') || text.includes('premium');
                     case 'performance':
-                        return text.includes('performance') || text.includes('fast') || text.includes('slow') || 
-                               text.includes('speed') || text.includes('efficient') || text.includes('powerful');
+                        return text.includes('performance') || text.includes('fast') || text.includes('slow') ||
+                            text.includes('speed') || text.includes('efficient') || text.includes('powerful');
                     case 'ease of use':
-                        return text.includes('easy') || text.includes('difficult') || text.includes('simple') || 
-                               text.includes('complicated') || text.includes('use') || text.includes('intuitive') || text.includes('user-friendly');
+                        return text.includes('easy') || text.includes('difficult') || text.includes('simple') ||
+                            text.includes('complicated') || text.includes('use') || text.includes('intuitive') || text.includes('user-friendly');
                     case 'features':
-                        return text.includes('feature') || text.includes('function') || text.includes('capability') || 
-                               text.includes('capabilities') || text.includes('option');
+                        return text.includes('feature') || text.includes('function') || text.includes('capability') ||
+                            text.includes('capabilities') || text.includes('option');
                     case 'design':
-                        return text.includes('design') || text.includes('look') || text.includes('aesthetic') || 
-                               text.includes('style') || text.includes('appearance');
+                        return text.includes('design') || text.includes('look') || text.includes('aesthetic') ||
+                            text.includes('style') || text.includes('appearance');
                     case 'battery':
-                        return text.includes('battery') || text.includes('power') || text.includes('charge') || 
-                               text.includes('charging') || text.includes('battery life');
+                        return text.includes('battery') || text.includes('power') || text.includes('charge') ||
+                            text.includes('charging') || text.includes('battery life');
                     case 'camera':
-                        return text.includes('camera') || text.includes('photo') || text.includes('picture') || 
-                               text.includes('video') || text.includes('image') || text.includes('lens');
+                        return text.includes('camera') || text.includes('photo') || text.includes('picture') ||
+                            text.includes('video') || text.includes('image') || text.includes('lens');
                     case 'support':
-                        return text.includes('support') || text.includes('customer service') || text.includes('warranty') || 
-                               text.includes('help') || text.includes('service');
+                        return text.includes('support') || text.includes('customer service') || text.includes('warranty') ||
+                            text.includes('help') || text.includes('service');
                     case 'recommendations':
-                        return text.includes('recommend') || text.includes('alternative') || text.includes('better') || 
-                               text.includes('compare') || text.includes('instead') || text.includes('prefer');
+                        return text.includes('recommend') || text.includes('alternative') || text.includes('better') ||
+                            text.includes('compare') || text.includes('instead') || text.includes('prefer');
                     default:
                         return false;
                 }
@@ -404,6 +498,7 @@ const ProductDetailPage: React.FC = () => {
                     </button>
                 </div>
 
+                {/* --- PRODUCT INFO SECTION --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="lg:col-span-4">
                         <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
@@ -453,6 +548,15 @@ const ProductDetailPage: React.FC = () => {
                         <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">{product.productDescription}</p>
                     </div>
                 </div>
+                {/* --- END PRODUCT INFO SECTION --- */}
+
+                {/* --- LIKES AND DISLIKES SECTION (NEW) --- */}
+                {/* Ensure your IProduct type includes `likesAndDislikes: LikesDislikesData` */}
+                {(product as IProduct & { likesAndDislikes?: LikesDislikesData }).likesAndDislikes && (
+                    <ProductLikesDislikes likesAndDislikes={(product as IProduct & { likesAndDislikes: LikesDislikesData }).likesAndDislikes} />
+                )}
+                {/* --- END LIKES AND DISLIKES SECTION --- */}
+
 
                 {product.redditReviews && product.redditReviews.length > 0 && (
                     <div className="mt-12 space-y-6">
@@ -469,8 +573,8 @@ const ProductDetailPage: React.FC = () => {
                                                     key={topic}
                                                     onClick={() => toggleTopic(topic)}
                                                     className={`px-4 py-2 rounded-full border-2 text-sm font-medium transition-colors cursor-pointer ${selectedTopics.includes(topic)
-                                                            ? 'border-[#FF5F1F] bg-[#FF5F1F] text-white'
-                                                            : 'border-gray-300 bg-white text-gray-700 hover:border-[#FF5F1F] hover:text-[#FF5F1F]'
+                                                        ? 'border-[#FF5F1F] bg-[#FF5F1F] text-white'
+                                                        : 'border-gray-300 bg-white text-gray-700 hover:border-[#FF5F1F] hover:text-[#FF5F1F]'
                                                         }`}
                                                 >
                                                     {topic}

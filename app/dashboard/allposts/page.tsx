@@ -2,9 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import FileUpload from '@/app/components/FileUpload';
-import { IProduct, IRedditReview } from '@/models/post';
-import { Plus, X } from 'lucide-react';
+
+interface IRedditReview {
+    comment: string;
+    tag: 'positive' | 'negative' | 'neutral';
+    link: string;
+    author?: string;
+    subreddit?: string;
+}
+
+interface IProduct {
+    _id?: string;
+    productTitle: string;
+    productDescription: string;
+    productPrice: string;
+    affiliateLink: string;
+    affiliateLinkText: string;
+    productScore: number;
+    productPhotos: string[];
+    redditReviews?: IRedditReview[];
+    createdAt?: string;
+}
 
 const AllPosts: React.FC = () => {
     const router = useRouter();
@@ -12,9 +30,6 @@ const AllPosts: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-    const [updateLoading, setUpdateLoading] = useState<string | null>(null);
-    const [editingPost, setEditingPost] = useState<IProduct | null>(null);
-    const [showEditModal, setShowEditModal] = useState(false);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -86,53 +101,9 @@ const AllPosts: React.FC = () => {
         }
     };
 
-    // Handle update - open edit modal
-    const handleUpdate = (post: IProduct) => {
-        console.log('Opening edit modal for post:', post);
-        console.log('Reddit Reviews:', post.redditReviews);
-        setEditingPost(post);
-        setShowEditModal(true);
-    };
-
-    // Update post using PUT request
-    const handleUpdateSubmit = async (updatedData: Partial<IProduct>) => {
-        if (!editingPost?._id) return;
-
-        try {
-            setUpdateLoading(editingPost._id.toString());
-            const response = await fetch('/api/auth/post', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: editingPost._id,
-                    ...updatedData
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to update post');
-            }
-
-            const updatedPost = await response.json();
-
-            // Update post in state
-            setPosts(prevPosts =>
-                prevPosts.map(post =>
-                    post._id?.toString() === editingPost._id?.toString() ? updatedPost : post
-                )
-            );
-
-            setShowEditModal(false);
-            setEditingPost(null);
-            alert('Post updated successfully!');
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to update post');
-        } finally {
-            setUpdateLoading(null);
-        }
+    // Handle update - redirect to update page
+    const handleUpdate = (postId: string) => {
+        router.push(`/dashboard/allposts/update/${postId}`);
     };
 
     useEffect(() => {
@@ -224,7 +195,7 @@ const AllPosts: React.FC = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-4 ">
+                    <div className="space-y-4">
                         {currentPosts.map((post) => (
                             <div
                                 key={post._id?.toString()}
@@ -263,11 +234,10 @@ const AllPosts: React.FC = () => {
                                     {/* Action Buttons */}
                                     <div className="flex flex-col gap-2 ml-4">
                                         <button
-                                            onClick={() => handleUpdate(post)}
-                                            disabled={updateLoading === post._id?.toString()}
-                                            className="bg-[#FF5F1F] cursor-pointer text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#f59772] transition-colors min-w-[80px] disabled:opacity-50"
+                                            onClick={() => handleUpdate(post._id?.toString() || '')}
+                                            className="bg-[#FF5F1F] cursor-pointer text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#f59772] transition-colors min-w-[80px]"
                                         >
-                                            {updateLoading === post._id?.toString() ? 'Updating...' : 'Update'}
+                                            Update
                                         </button>
 
                                         <button
@@ -331,8 +301,8 @@ const AllPosts: React.FC = () => {
                                             key={page}
                                             onClick={() => goToPage(page)}
                                             className={`px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${isCurrentPage
-                                                    ? 'bg-[#FF5F1F] text-white border border-[#FF5F1F]'
-                                                    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                                                ? 'bg-[#FF5F1F] text-white border border-[#FF5F1F]'
+                                                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {page}
@@ -352,250 +322,6 @@ const AllPosts: React.FC = () => {
                         </div>
                     </div>
                 )}
-
-                {/* Edit Modal */}
-                {showEditModal && editingPost && (
-                    <EditPostModal
-                        post={editingPost}
-                        onClose={() => {
-                            setShowEditModal(false);
-                            setEditingPost(null);
-                        }}
-                        onSubmit={handleUpdateSubmit}
-                        isLoading={updateLoading === editingPost._id?.toString()}
-                    />
-                )}
-            </div>
-        </div>
-    );
-};
-
-// Enhanced Edit Modal Component with Complete Form
-const EditPostModal: React.FC<{
-    post: IProduct;
-    onClose: () => void;
-    onSubmit: (data: Partial<IProduct>) => void;
-    isLoading: boolean;
-}> = ({ post, onClose, onSubmit, isLoading }) => {
-    // Add state for redditReviews as a JSON string
-    const [redditReviewsInput, setRedditReviewsInput] = useState(
-        JSON.stringify(post.redditReviews || [], null, 2)
-    );
-    const [formData, setFormData] = useState({
-        productTitle: post.productTitle || '',
-        productDescription: post.productDescription || '',
-        productPrice: post.productPrice || '',
-        affiliateLink: post.affiliateLink || '',
-        affiliateLinkText: post.affiliateLinkText || '',
-        productScore: post.productScore || 50,
-        productPhotos: post.productPhotos || [],
-    });
-
-    // Debug effect to check initial form data
-    useEffect(() => {
-        console.log('Form data initialized:', formData);
-    }, [formData]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        let redditReviews: IRedditReview[] = [];
-        try {
-            const parsed = JSON.parse(redditReviewsInput);
-            if (!Array.isArray(parsed)) throw new Error('Not an array');
-            redditReviews = parsed.map((p) => ({
-                comment: String(p.comment ?? p.commentText ?? ''),
-                tag: p.tag === 'positive' || p.tag === 'negative' ? p.tag : 'neutral',
-                link: String(p.link ?? p.permalink ?? ''),
-                author: typeof p.author === 'string' ? p.author : '',
-                subreddit: typeof p.subreddit === 'string' ? p.subreddit : '',
-            }));
-        } catch {
-            alert('Reddit reviews must be a valid JSON array.');
-            return;
-        }
-
-        const cleanedData = {
-            ...formData,
-            redditReviews,
-        };
-        onSubmit(cleanedData);
-    };
-
-    // Remove image handler
-    const handleRemoveImage = (idx: number) => {
-        setFormData(prev => ({
-            ...prev,
-            productPhotos: prev.productPhotos.filter((_, i) => i !== idx)
-        }));
-    };
-
-    // Add image handler
-    const handleAddImage = (res: { url: string }) => {
-        setFormData(prev => ({
-            ...prev,
-            productPhotos: [...prev.productPhotos, res.url]
-        }));
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold mb-6">Edit Post</h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Product Images */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Product Images</label>
-                        <div className="flex gap-2 flex-wrap mb-2">
-                            {formData.productPhotos && formData.productPhotos.length > 0 && (
-                                formData.productPhotos.map((url, idx) => (
-                                    <div key={idx} className="relative group">
-                                        <img
-                                            src={url}
-                                            alt={`Product ${idx + 1}`}
-                                            className="w-24 h-24 object-cover rounded border"
-                                        />
-                                        <button
-                                            type="button"
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-80 hover:opacity-100 cursor-pointer"
-                                            onClick={() => handleRemoveImage(idx)}
-                                            title="Remove image"
-                                        >
-                                            &times;
-                                        </button>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <FileUpload
-                            onSuccess={handleAddImage}
-                            FileType="image"
-                        />
-                    </div>
-
-                    {/* Basic Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Product Title *</label>
-                            <input
-                                type="text"
-                                value={formData.productTitle}
-                                onChange={(e) => setFormData(prev => ({ ...prev, productTitle: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Product Price *</label>
-                            <input
-                                type="text"
-                                value={formData.productPrice}
-                                onChange={(e) => setFormData(prev => ({ ...prev, productPrice: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                placeholder="$99.99"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Product Description *</label>
-                        <textarea
-                            value={formData.productDescription}
-                            onChange={(e) => setFormData(prev => ({ ...prev, productDescription: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-[#f59772]"
-                            required
-                        />
-                    </div>
-
-                    {/* Affiliate Link Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Affiliate Link *</label>
-                            <input
-                                type="url"
-                                value={formData.affiliateLink}
-                                onChange={(e) => setFormData(prev => ({ ...prev, affiliateLink: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Affiliate Link Text *</label>
-                            <input
-                                type="text"
-                                value={formData.affiliateLinkText}
-                                onChange={(e) => setFormData(prev => ({ ...prev, affiliateLinkText: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                placeholder="Buy on Amazon"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    {/* Product Score */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Product Score: <span className="text-lime-600 font-bold">{formData.productScore}/100</span>
-                        </label>
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={formData.productScore}
-                            onChange={(e) => setFormData(prev => ({ ...prev, productScore: parseInt(e.target.value) }))}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                            style={{
-                                background: `linear-gradient(to right, #a3e635 0%, #a3e635 ${formData.productScore}%, #e5e7eb ${formData.productScore}%, #e5e7eb 100%)`
-                            }}
-                        />
-                    </div>
-
-                    {/* Reddit Reviews as JSON Array */}
-                    <div>
-                        <label className="block text-sm font-medium mb-3">
-                            Reddit Reviews (JSON Array)
-                        </label>
-                        <textarea
-                            value={redditReviewsInput}
-                            onChange={e => setRedditReviewsInput(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772] font-mono"
-                            rows={8}
-                            placeholder={`[
-  {
-    "comment": "Great product!",
-    "tag": "positive",
-    "link": "https://reddit.com/...",
-    "author": "user123",
-    "subreddit": "subredditName"
-  }
-]`}
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Enter a JSON array of reviews. Each review should have <code>comment</code>, <code>tag</code>, <code>link</code>, <code>author</code>, and <code>subreddit</code>.
-                        </p>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-4 pt-6 border-t">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer font-medium"
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="flex-1 px-6 cursor-pointer py-3 bg-[#FF5F1F] text-white rounded-lg hover:bg-[#f59772] disabled:opacity-50 font-medium"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Updating...' : 'Update Post'}
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     );

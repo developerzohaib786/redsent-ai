@@ -8,6 +8,16 @@ export interface IRedditReview {
     subreddit: string;
 }
 
+export interface ILikeDislikePoint {
+    heading: string;
+    points: string[];
+}
+
+export interface ILikesAndDislikes {
+    likes: ILikeDislikePoint[];
+    dislikes: ILikeDislikePoint[];
+}
+
 export interface IProduct {
     _id?: mongoose.Types.ObjectId;
     productTitle: string;
@@ -23,10 +33,7 @@ export interface IProduct {
     productScore: number;
     productRank?: number;
     category: string;
-    likeCount: number;
-    likedBy: string[];
-    anonymousLikeCount: number;
-    anonymousLikedBy: string[]; // Store browser fingerprints or session IDs
+    likesAndDislikes?: ILikesAndDislikes;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -43,6 +50,42 @@ const redditReviewSchema = new Schema({
     subreddit: { type: String, required: true }
 }, { _id: false });
 
+const likeDislikePointSchema = new Schema({
+    heading: { type: String, required: true },
+    points: {
+        type: [String],
+        required: true,
+        validate: {
+            validator: function (arr: string[]) {
+                return arr.length >= 1 && arr.length <= 10;
+            },
+            message: 'Each category must have between 1 and 10 points'
+        }
+    }
+}, { _id: false });
+
+const likesAndDislikesSchema = new Schema({
+    likes: {
+        type: [likeDislikePointSchema],
+        default: [],
+        validate: {
+            validator: function (arr: ILikeDislikePoint[]) {
+                return arr.length <= 10;
+            },
+            message: 'Maximum 10 like categories allowed'
+        }
+    },
+    dislikes: {
+        type: [likeDislikePointSchema],
+        default: [],
+        validate: {
+            validator: function (arr: ILikeDislikePoint[]) {
+                return arr.length <= 10;
+            },
+            message: 'Maximum 10 dislike categories allowed'
+        }
+    }
+}, { _id: false });
 
 const productSchema = new Schema({
     productRank: {
@@ -136,23 +179,9 @@ const productSchema = new Schema({
         max: 100,
         default: 50
     },
-    likeCount: {
-        type: Number,
-        default: 0,
-        min: 0
-    },
-    likedBy: {
-        type: [String],
-        default: []
-    },
-    anonymousLikeCount: {
-        type: Number,
-        default: 0,
-        min: 0
-    },
-    anonymousLikedBy: {
-        type: [String],
-        default: []
+    likesAndDislikes: {
+        type: likesAndDislikesSchema,
+        default: undefined
     }
 }, { timestamps: true });
 

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { X, Star, MessageSquare, AlertCircle } from 'lucide-react';
+import { X, Star, MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import FileUpload from "@/app/components/FileUpload";
 
@@ -11,6 +11,16 @@ interface RedditReview {
     link: string;
     author: string;
     subreddit: string;
+}
+
+interface LikeDislikePoint {
+    heading: string;
+    points: string[];
+}
+
+interface LikesDislikesData {
+    likes: LikeDislikePoint[];
+    dislikes: LikeDislikePoint[];
 }
 
 interface ProductFormData {
@@ -24,6 +34,7 @@ interface ProductFormData {
     productScore: number;
     category: string;
     productRank?: number;
+    likesAndDislikes?: LikesDislikesData;
 }
 
 interface Category {
@@ -64,12 +75,14 @@ const ProductPostForm: React.FC = () => {
         productScore: 50,
         category: '',
         productRank: undefined,
+        likesAndDislikes: undefined,
     });
 
     const [redditReviewsInput, setRedditReviewsInput] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGeneratingLikesDislikes, setIsGeneratingLikesDislikes] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<{ [key: number]: number }>({});
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -202,8 +215,8 @@ const ProductPostForm: React.FC = () => {
                 const parsed = JSON.parse(redditReviewsInput);
                 if (!Array.isArray(parsed)) {
                     newErrors.redditReviews = 'Reddit reviews must be a JSON array.';
-                } else if (parsed.length > 50) {
-                    newErrors.redditReviews = 'Maximum 50 Reddit reviews allowed.';
+                } else if (parsed.length > 100) {
+                    newErrors.redditReviews = 'Maximum 100 Reddit reviews allowed.';
                 } else {
                     for (const review of parsed) {
                         if (!review.comment || !review.tag || !review.link) {
@@ -233,6 +246,51 @@ const ProductPostForm: React.FC = () => {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const generateLikesAndDislikes = async () => {
+        let reviews: RedditReview[] = [];
+        try {
+            if (redditReviewsInput.trim()) {
+                reviews = JSON.parse(redditReviewsInput);
+            }
+        } catch {
+            alert('Please enter valid JSON for Reddit reviews');
+            return;
+        }
+
+        if (reviews.length === 0) {
+            alert('Please add Reddit reviews first');
+            return;
+        }
+
+        setIsGeneratingLikesDislikes(true);
+
+        try {
+            const response = await axios.post('/api/generate-likes-dislikes', {
+                reviews: reviews,
+                productTitle: formData.productTitle,
+            });
+
+            if (response.data.success) {
+                setFormData(prev => ({
+                    ...prev,
+                    likesAndDislikes: response.data.data
+                }));
+                alert('Likes and Dislikes generated successfully!');
+            } else {
+                alert('Failed to generate likes and dislikes: ' + response.data.error);
+            }
+        } catch (error) {
+            console.error('Error generating likes and dislikes:', error);
+            if (axios.isAxiosError(error)) {
+                alert(`Error: ${error.response?.data?.error || 'Failed to generate likes and dislikes'}`);
+            } else {
+                alert('An unexpected error occurred');
+            }
+        } finally {
+            setIsGeneratingLikesDislikes(false);
+        }
     };
 
     const handleSubmit = async () => {
@@ -272,6 +330,7 @@ const ProductPostForm: React.FC = () => {
                     category: '',
                     productScore: 50,
                     productRank: undefined,
+                    likesAndDislikes: undefined,
                 });
                 setRedditReviewsInput('');
             }
@@ -304,6 +363,18 @@ const ProductPostForm: React.FC = () => {
         const rank = Math.round((formData.productScore * 0.3) + (positivePct * 0.5) + (neutralPct * 0.2));
         setFormData(prev => ({ ...prev, productRank: rank }));
         return rank;
+    };
+
+    const canGenerateLikesDislikes = () => {
+        try {
+            if (redditReviewsInput.trim()) {
+                const reviews = JSON.parse(redditReviewsInput);
+                return Array.isArray(reviews) && reviews.length > 0;
+            }
+        } catch {
+            return false;
+        }
+        return false;
     };
 
     const ErrorMessage: React.FC<{ error?: string }> = ({ error }) => {
@@ -476,7 +547,7 @@ const ProductPostForm: React.FC = () => {
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
                         <MessageSquare className="inline w-5 h-5 mr-2" />
-                        Reddit Reviews (JSON array, max 50)
+                        Reddit Reviews (JSON array, max 100)
                     </label>
                     <textarea
                         value={redditReviewsInput}
@@ -487,6 +558,78 @@ const ProductPostForm: React.FC = () => {
                     />
                     <ErrorMessage error={errors.redditReviews} />
                 </div>
+
+                {/* Generate Likes and Dislikes Button */}
+                <div className="pt-4">
+                    <button
+                        type="button"
+                        onClick={generateLikesAndDislikes}
+                        disabled={!canGenerateLikesDislikes() || isGeneratingLikesDislikes}
+                        className="bg-purple-500 cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {isGeneratingLikesDislikes ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                <ThumbsUp className="w-5 h-5" />
+                                <ThumbsDown className="w-5 h-5" />
+                                Generate Likes & Dislikes
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                {/* Display Generated Likes and Dislikes */}
+                {formData.likesAndDislikes && (
+                    <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">Generated Likes & Dislikes</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Likes */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <ThumbsUp className="w-5 h-5 text-green-600" />
+                                    <h4 className="text-lg font-semibold text-green-600">Likes</h4>
+                                </div>
+                                <div className="space-y-3">
+                                    {formData.likesAndDislikes.likes.map((like, idx) => (
+                                        <div key={idx} className="bg-white p-3 rounded-lg border border-green-200">
+                                            <h5 className="font-semibold text-gray-800 mb-2">{like.heading}</h5>
+                                            <ul className="list-disc list-inside space-y-1">
+                                                {like.points.map((point, pIdx) => (
+                                                    <li key={pIdx} className="text-sm text-gray-600">{point}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Dislikes */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <ThumbsDown className="w-5 h-5 text-red-600" />
+                                    <h4 className="text-lg font-semibold text-red-600">Dislikes</h4>
+                                </div>
+                                <div className="space-y-3">
+                                    {formData.likesAndDislikes.dislikes.map((dislike, idx) => (
+                                        <div key={idx} className="bg-white p-3 rounded-lg border border-red-200">
+                                            <h5 className="font-semibold text-gray-800 mb-2">{dislike.heading}</h5>
+                                            <ul className="list-disc list-inside space-y-1">
+                                                {dislike.points.map((point, pIdx) => (
+                                                    <li key={pIdx} className="text-sm text-gray-600">{point}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">

@@ -1,6 +1,6 @@
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb"
-import Product, { IProduct } from "@/models/post";
+import Product, { IProduct, ILikesAndDislikes, ILikeDislikePoint, IRedditReview } from "@/models/post";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
@@ -85,6 +85,44 @@ export async function POST(request: NextRequest) {
         const negativeReviewPercentage = totalReviews > 0 ? Math.round((negativeCount / totalReviews) * 100) : 0;
         const neutralReviewPercentage = totalReviews > 0 ? Math.round((neutralCount / totalReviews) * 100) : 0;
 
+        // Validate likes and dislikes if provided
+        let likesAndDislikes: ILikesAndDislikes | undefined = undefined;
+        if (body.likesAndDislikes) {
+            // Validate structure
+            if (
+                typeof body.likesAndDislikes === 'object' &&
+                Array.isArray(body.likesAndDislikes.likes) &&
+                Array.isArray(body.likesAndDislikes.dislikes)
+            ) {
+                // Validate each like category
+                const validLikes = body.likesAndDislikes.likes.every(like =>
+                    like &&
+                    typeof like.heading === 'string' &&
+                    like.heading.trim().length > 0 &&
+                    Array.isArray(like.points) &&
+                    like.points.length > 0 &&
+                    like.points.every((point: string) => typeof point === 'string' && point.trim().length > 0)
+                );
+
+                // Validate each dislike category
+                const validDislikes = body.likesAndDislikes.dislikes.every(dislike =>
+                    dislike &&
+                    typeof dislike.heading === 'string' &&
+                    dislike.heading.trim().length > 0 &&
+                    Array.isArray(dislike.points) &&
+                    dislike.points.length > 0 &&
+                    dislike.points.every((point: string) => typeof point === 'string' && point.trim().length > 0)
+                );
+
+                if (validLikes && validDislikes) {
+                    likesAndDislikes = {
+                        likes: body.likesAndDislikes.likes,
+                        dislikes: body.likesAndDislikes.dislikes
+                    };
+                }
+            }
+        }
+
         // Prepare product data
         const productData: Partial<IProduct> = {
             productTitle: body.productTitle.trim(),
@@ -99,7 +137,8 @@ export async function POST(request: NextRequest) {
             category: body.category,
             positiveReviewPercentage,
             negativeReviewPercentage,
-            neutralReviewPercentage
+            neutralReviewPercentage,
+            likesAndDislikes
         };
 
         const newProduct = await Product.create(productData);
@@ -142,15 +181,53 @@ export async function PUT(request: NextRequest) {
         // Calculate review percentages
         const reviews = updateData.redditReviews || [];
         const totalReviews = reviews.length;
-        const positiveCount = reviews.filter((r: { tag: string }) => r.tag === 'positive').length;
-        const negativeCount = reviews.filter((r: { tag: string }) => r.tag === 'negative').length;
-        const neutralCount = reviews.filter((r: { tag: string }) => r.tag === 'neutral').length;
+        const positiveCount = reviews.filter((r: IRedditReview) => r.tag === 'positive').length;
+        const negativeCount = reviews.filter((r: IRedditReview) => r.tag === 'negative').length;
+        const neutralCount = reviews.filter((r: IRedditReview) => r.tag === 'neutral').length;
         const positiveReviewPercentage = totalReviews > 0 ? Math.round((positiveCount / totalReviews) * 100) : 0;
         const negativeReviewPercentage = totalReviews > 0 ? Math.round((negativeCount / totalReviews) * 100) : 0;
         const neutralReviewPercentage = totalReviews > 0 ? Math.round((neutralCount / totalReviews) * 100) : 0;
 
+        // Validate and prepare likes and dislikes if provided
+        let likesAndDislikes: ILikesAndDislikes | undefined = undefined;
+        if (updateData.likesAndDislikes) {
+            // Validate structure
+            if (
+                typeof updateData.likesAndDislikes === 'object' &&
+                Array.isArray(updateData.likesAndDislikes.likes) &&
+                Array.isArray(updateData.likesAndDislikes.dislikes)
+            ) {
+                // Validate each like category
+                const validLikes = updateData.likesAndDislikes.likes.every((like: ILikeDislikePoint) =>
+                    like &&
+                    typeof like.heading === 'string' &&
+                    like.heading.trim().length > 0 &&
+                    Array.isArray(like.points) &&
+                    like.points.length > 0 &&
+                    like.points.every((point: string) => typeof point === 'string' && point.trim().length > 0)
+                );
+
+                // Validate each dislike category
+                const validDislikes = updateData.likesAndDislikes.dislikes.every((dislike: ILikeDislikePoint) =>
+                    dislike &&
+                    typeof dislike.heading === 'string' &&
+                    dislike.heading.trim().length > 0 &&
+                    Array.isArray(dislike.points) &&
+                    dislike.points.length > 0 &&
+                    dislike.points.every((point: string) => typeof point === 'string' && point.trim().length > 0)
+                );
+
+                if (validLikes && validDislikes) {
+                    likesAndDislikes = {
+                        likes: updateData.likesAndDislikes.likes,
+                        dislikes: updateData.likesAndDislikes.dislikes
+                    };
+                }
+            }
+        }
+
         // Prepare update data with schema alignment
-        const productUpdateData = {
+        const productUpdateData: Partial<IProduct> = {
             productTitle: updateData.productTitle.trim(),
             productDescription: updateData.productDescription.trim(),
             productPhotos: updateData.productPhotos?.filter((photo: string) => photo.trim() !== "") || [],
@@ -161,14 +238,15 @@ export async function PUT(request: NextRequest) {
             productScore: updateData.productScore ?? 50,
             productRank: updateData.productRank ?? undefined,
             category: updateData.category,
-            likeCount: updateData.likeCount ?? 0,
-            likedBy: updateData.likedBy || [],
-            anonymousLikeCount: updateData.anonymousLikeCount ?? 0,
-            anonymousLikedBy: updateData.anonymousLikedBy || [],
             positiveReviewPercentage,
             negativeReviewPercentage,
             neutralReviewPercentage
         };
+
+        // Only add likesAndDislikes if it's defined
+        if (likesAndDislikes !== undefined) {
+            productUpdateData.likesAndDislikes = likesAndDislikes;
+        }
 
         const updatedProduct = await Product.findByIdAndUpdate(id, productUpdateData, {
             new: true,

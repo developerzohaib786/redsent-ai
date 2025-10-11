@@ -43,27 +43,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => (
     </div>
 
     {/* Product Image */}
-     <Link href={`/products/${product._id?.toString()}-${idx + 1}`}>
-    <div className="relative cursor-pointer w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
-      {product.productPhotos && product.productPhotos.length > 0 ? (
-        <Image
-          src={product.productPhotos[0]}
-          alt={product.productTitle}
-          width={400}
-          height={200}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-gray-400">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
-              📦
+    <Link href={`/products/${product._id?.toString()}-${idx + 1}`}>
+      <div className="relative cursor-pointer w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
+        {product.productPhotos && product.productPhotos.length > 0 ? (
+          <Image
+            src={product.productPhotos[0]}
+            alt={product.productTitle}
+            width={400}
+            height={200}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
+                📦
+              </div>
+              <p className="text-sm">No Image</p>
             </div>
-            <p className="text-sm">No Image</p>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
     </Link>
 
     {/* Product Info */}
@@ -145,7 +145,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => (
           rel="noopener noreferrer"
         >
           <ExternalLink size={18} />
-          Affiliate Link
+          <span>{product.affiliateLinkText}</span><span>{`USD ${product.productPrice}`}</span>
         </Link>
       </div>
     </div>
@@ -162,6 +162,7 @@ const CategoryProducts: React.FC = () => {
   const [categoryData, setCategoryData] = useState<ICategoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'rank' | 'price' | 'positive'>('rank');
 
   // Ref for the scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -226,7 +227,18 @@ const CategoryProducts: React.FC = () => {
         p.category?.toLowerCase() === categoryName.toLowerCase() &&
         typeof p.productRank === "number"
     )
-    .sort((a, b) => (b.productRank ?? 0) - (a.productRank ?? 0));
+    .sort((a, b) => {
+      if (sortBy === 'rank') {
+        return (b.productRank ?? 0) - (a.productRank ?? 0);
+      } else if (sortBy === 'price') {
+        const priceA = parseFloat(a.productPrice?.replace(/[^0-9.]/g, '') || '0');
+        const priceB = parseFloat(b.productPrice?.replace(/[^0-9.]/g, '') || '0');
+        return priceA - priceB; // Low to high
+      } else if (sortBy === 'positive') {
+        return (b.positiveReviewPercentage ?? 0) - (a.positiveReviewPercentage ?? 0);
+      }
+      return 0;
+    });
 
   const faqs = categoryData?.faqs || [];
 
@@ -242,6 +254,39 @@ const CategoryProducts: React.FC = () => {
             Showing {filtered.length} products ranked based on reddit reviews
           </p>
         </div>
+
+        {/* Filter Buttons */}
+        {!loading && !error && filtered.length > 0 && (
+          <div className="mb-6 flex flex-wrap gap-3">
+            <button
+              onClick={() => setSortBy('rank')}
+              className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'rank'
+                ? 'bg-[#FF5F1F] text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              Sort by Rank
+            </button>
+            <button
+              onClick={() => setSortBy('positive')}
+              className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'positive'
+                ? 'bg-[#FF5F1F] text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              Sort by Positive Reviews
+            </button>
+            <button
+              onClick={() => setSortBy('price')}
+              className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'price'
+                ? 'bg-[#FF5F1F] text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              Sort by Price (Low to High)
+            </button>
+          </div>
+        )}
 
         {/* Error/Loading */}
         {loading ? (
