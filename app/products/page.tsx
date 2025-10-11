@@ -88,9 +88,6 @@ const ProductsGrid: React.FC = () => {
 
     const ProductCard: React.FC<{ product: IProduct; index: number }> = ({ product, index }) => {
         const [imageError, setImageError] = useState(false);
-        const [liked, setLiked] = useState(false);
-        const [likeCount, setLikeCount] = useState(product.likeCount || 0);
-        const [isLiking, setIsLiking] = useState(false);
 
         useEffect(() => {
             const checkLikeStatus = async () => {
@@ -98,8 +95,6 @@ const ProductsGrid: React.FC = () => {
                     const response = await fetch(`/api/auth/post/${product._id}/like`);
                     if (response.ok) {
                         const data = await response.json();
-                        setLiked(data.userHasLiked);
-                        setLikeCount(data.likeCount);
                     }
                 } catch (error) {
                     console.error('Error checking like status:', error);
