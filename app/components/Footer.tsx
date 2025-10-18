@@ -33,14 +33,7 @@ const Footer = () => {
             <span className="text-[#FF5F1F] font-semibold text-lg">Reddit Reviews</span>
           </div>
           <p className="text-sm text-black/70">
-            A library created with <span className="text-[#FF5F1F]">♥</span> by{" "}
-            <Link
-              href="https://github.com/developerzohaib786"
-              target="_blank"
-              className="text-[#FF5F1F] hover:underline"
-            >
-              developerzohaib
-            </Link>
+            Hand-picked resources <span className="text-[#FF5F1F]">♥</span> for Reddit product reviews.
           </p>
         </div>
 
@@ -49,7 +42,8 @@ const Footer = () => {
           <Link href="/pipeline" className="hover:text-[#e34f14] transition-colors">Pipeline</Link>
           <Link href="/faqs" className="hover:text-[#e34f14] transition-colors">FAQs</Link>
           <Link href="/privacy-policy" className="hover:text-[#e34f14] transition-colors">Privacy Policy</Link>
-          <Link href="/login" className="hover:text-[#e34f14] transition-colors">Admin</Link>
+          <Link href="/categories-list" className="hover:text-[#e34f14] transition-colors">Products Ranked List</Link>
+          {/* <Link href="/login" className="hover:text-[#e34f14] transition-colors">Admin</Link> */}
         </div>
       </div>
 

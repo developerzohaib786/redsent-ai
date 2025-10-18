@@ -13,11 +13,11 @@ const TestimonialSection: React.FC = () => {
   const { title, subtitle, primaryColor, backgroundColor } = testimonialConfig;
 
   return (
-    <section className="py-20 px-4" style={{ backgroundColor }}>
+    <section className="py-5 px-4" style={{ backgroundColor }}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 
+          <h2
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ color: primaryColor }}
           >
@@ -36,7 +36,7 @@ const TestimonialSection: React.FC = () => {
               className="bg-white rounded-2xl shadow-lg p-6 md:p-8 relative overflow-hidden border-2 border-gray-100 hover:shadow-xl transition-all"
             >
               {/* Quote Icon */}
-              <div 
+              <div
                 className="absolute top-4 right-4 opacity-10"
                 style={{ color: primaryColor }}
               >
@@ -47,7 +47,7 @@ const TestimonialSection: React.FC = () => {
               <div className="relative z-10">
                 {/* Avatar and User Info */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div 
+                  <div
                     className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
                     style={{ backgroundColor: primaryColor }}
                   >

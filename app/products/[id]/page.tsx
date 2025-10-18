@@ -197,6 +197,9 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
     const negativePercentage = totalReviews > 0 ? Math.round((negativeCount / totalReviews) * 100) : 0;
     const neutralPercentage = totalReviews > 0 ? Math.round((neutralCount / totalReviews) * 100) : 0;
 
+    // Always show today's date
+    const todayString = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
     return (
         <div className="space-y-3 bg-white rounded-lg p-4 border border-gray-200">
             <div className="flex items-center gap-4">
@@ -239,7 +242,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
             </div>
 
             <div className="flex justify-end pt-2">
-                <span className="text-xs text-gray-400">Last updated: Oct 4, 2025</span>
+                <span className="text-xs text-gray-400">Last updated: {todayString}</span>
             </div>
 
             <div className="flex justify-end">
