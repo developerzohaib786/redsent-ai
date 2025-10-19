@@ -40,7 +40,7 @@ const Footer = () => {
         {/* Right section nav */}
         <div className="flex flex-wrap justify-center md:justify-end text-black gap-6 text-[16px]">
           <Link href="/pipeline" className="hover:text-[#e34f14] transition-colors">Pipeline</Link>
-          <Link href="/faqs" className="hover:text-[#e34f14] transition-colors">FAQs</Link>
+          <Link href="/faq" className="hover:text-[#e34f14] transition-colors">FAQs</Link>
           <Link href="/privacy-policy" className="hover:text-[#e34f14] transition-colors">Privacy Policy</Link>
           <Link href="/categories-list" className="hover:text-[#e34f14] transition-colors">Products Ranked List</Link>
           {/* <Link href="/login" className="hover:text-[#e34f14] transition-colors">Admin</Link> */}
