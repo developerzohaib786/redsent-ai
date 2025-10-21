@@ -46,7 +46,7 @@ export const testimonialsData: Testimonial[] = [
 ];
 
 export const testimonialConfig = {
-  title: 'Fans of RedditRevs',
+  title: 'Fans of RedSent AI',
   subtitle: 'See what our community members are saying',
   primaryColor: '#FF5F1F',
   backgroundColor: 'white'

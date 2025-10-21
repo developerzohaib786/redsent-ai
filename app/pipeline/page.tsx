@@ -280,7 +280,7 @@ export default function PipelinePage() {
           {/* CTA Section */}
           <section className="text-center">
             <div className="bg-gradient-to-br from-[#FF5F1F] to-[#D64D15] rounded-2xl shadow-2xl p-12">
-              <h2 className="text-3xl font-bold text-white mb-4">Ready to Transform RedditRevs?</h2>
+              <h2 className="text-3xl font-bold text-white mb-4">Ready to Transform RedSent AI?</h2>
               <p className="text-white text-lg mb-8 max-w-2xl mx-auto">
                 Start analyzing real customer opinions with our AI-powered pipeline today
               </p>
