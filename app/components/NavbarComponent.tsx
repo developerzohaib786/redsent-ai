@@ -9,8 +9,8 @@ import Image from "next/image";
 const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'About Us', href: '/aboutus' },
-  { label: 'FAQs', href: '/faq' },
-  { label: 'Top Ranked List', href: '/categories-list' },
+  { label: 'SignUp', href: '/signup' },
+  { label: 'LogIn', href: '/login' },
 ]
 
 export default function Navbar() {
