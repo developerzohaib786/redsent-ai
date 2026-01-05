@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = 'mongodb+srv://userno1:password0003%23%23@cluster0.g4qiwd6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'; // <-- Replace with your connection string
 
 const productSchema = new mongoose.Schema({}, { strict: false });
 const Product = mongoose.model('Product', productSchema, 'products');
